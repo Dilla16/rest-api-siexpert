@@ -1,12 +1,8 @@
 const { Pool } = require("pg");
+require("dotenv").config();
 
 const pool = new Pool({
-  connectionString: process.env.POSTGRES_URL + "?sslmode=require",
+  connectionString: process.env.POSTGRES_URL,
 });
 
-Pool.connect((err) => {
-  if (err) throw err;
-  console.log("connect to PosgreSQL successfully!");
-});
-
-module.exports = Pool;
+module.exports = pool;
