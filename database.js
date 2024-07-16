@@ -1,14 +1,19 @@
-const { Sequelize } = require("sequelize");
+const { Pool } = require("pg");
 require("dotenv").config();
 
-const sequelize = new Sequelize(process.env.POSTGRES_URL, {
-  dialect: "postgres",
-  dialectOptions: {
-    ssl: {
-      require: true,
-      rejectUnauthorized: false,
-    },
+const pool = new Pool({
+  connectionString: process.env.POSTGRES_URL,
+  ssl: {
+    rejectUnauthorized: false,
   },
 });
 
-module.exports = sequelize;
+pool.connect((err, client, release) => {
+  if (err) {
+    return console.error("Error acquiring client", err.stack);
+  }
+  console.log("Database connected successfully");
+  release();
+});
+
+module.exports = pool;
