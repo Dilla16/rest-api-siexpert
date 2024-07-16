@@ -1,40 +1,15 @@
-const { Pool } = require("pg");
-const bcrypt = require("bcrypt");
+const db = require("../../database");
 
-// Buat instance pool dengan koneksi dari environment variable
-const pool = new Pool({
-  connectionString: process.env.POSTGRES_URL,
-  ssl: {
-    rejectUnauthorized: false,
+const UserModel = {
+  async createUser(sesa, name, email, encryptedPassword, token, role, level) {
+    const result = await db.query("INSERT INTO users (sesa, name, email, encrypted_password, token, role, level) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *", [sesa, name, email, encryptedPassword, token, role, level]);
+    return result.rows[0];
   },
-});
-
-// Fungsi untuk mendapatkan semua pengguna
-const getAllUsers = async () => {
-  const client = await pool.connect();
-  try {
-    const res = await client.query("SELECT * FROM users");
-    return res.rows;
-  } finally {
-    client.release();
-  }
+  async getUsers() {
+    const result = await db.query("SELECT * FROM users");
+    return result.rows;
+  },
+  // Tambahkan fungsi lain sesuai kebutuhan
 };
 
-// Fungsi untuk membuat pengguna baru
-const createUser = async (user) => {
-  const { sesa, name, email, password, role } = user;
-  const client = await pool.connect();
-  const hashedPassword = await bcrypt.hash(password, 10);
-
-  try {
-    const res = await client.query("INSERT INTO users (sesa, name, email, password, role) VALUES ($1, $2, $3, $4, $5) RETURNING *", [sesa, name, email, hashedPassword, role]);
-    return res.rows[0];
-  } finally {
-    client.release();
-  }
-};
-
-module.exports = {
-  getAllUsers,
-  createUser,
-};
+module.exports = UserModel;

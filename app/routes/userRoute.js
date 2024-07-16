@@ -1,9 +1,9 @@
 const express = require("express");
-const router = express.Router();
-const userController = require("../controllers/userController");
+const UserController = require("../controllers/userController");
 
-// Rute untuk membuat pengguna baru
-router.post("/createusers", userController.createUser);
-router.get("/users", userController.getAllUsers);
+const router = express.Router();
+
+router.post("/users", UserController.create);
+router.get("/users", UserController.getAll);
 
 module.exports = router;

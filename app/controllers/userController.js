@@ -1,23 +1,24 @@
-const { getAllUsers, createUser } = require("../models/userModel");
+const UserModel = require("../models/userModel");
 
-// Mendapatkan semua pengguna
-exports.getAllUsers = async (req, res) => {
-  try {
-    const users = await getAllUsers();
-    res.status(200).json(users);
-  } catch (error) {
-    res.status(400).json({ error: error.message });
-  }
+const UserController = {
+  async create(req, res) {
+    const { sesa, name, email, encryptedPassword, token, role, level } = req.body;
+    try {
+      const user = await UserModel.createUser(sesa, name, email, encryptedPassword, token, role, level);
+      res.status(201).json(user);
+    } catch (error) {
+      res.status(500).json({ error: "Internal Server Error" });
+    }
+  },
+
+  async getAll(req, res) {
+    try {
+      const users = await UserModel.getUsers();
+      res.status(200).json(users);
+    } catch (error) {
+      res.status(500).json({ error: "Internal Server Error" });
+    }
+  },
 };
 
-// Membuat pengguna baru
-exports.createUser = async (req, res) => {
-  const { sesa, name, email, password, role } = req.body;
-
-  try {
-    const newUser = await createUser({ sesa, name, email, password, role });
-    res.status(201).json(newUser);
-  } catch (error) {
-    res.status(400).json({ error: error.message });
-  }
-};
+module.exports = UserController;
