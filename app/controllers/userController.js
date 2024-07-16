@@ -1,12 +1,17 @@
+const bcrypt = require("bcrypt");
 const UserModel = require("../models/userModel");
 
 const UserController = {
   async create(req, res) {
-    const { sesa, name, email, encryptedPassword, token, role, level } = req.body;
+    const { sesa, name, email, password, role, level } = req.body;
+
+    const hashedPassword = await bcrypt.hash(password, 10); // 10 is the salt rounds
+
     try {
-      const user = await UserModel.createUser(sesa, name, email, encryptedPassword, token, role, level);
+      const user = await UserModel.createUser(sesa, name, email, hashedPassword, role, level);
       res.status(201).json(user);
     } catch (error) {
+      console.error("Error creating user:", error);
       res.status(500).json({ error: "Internal Server Error" });
     }
   },
