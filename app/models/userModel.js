@@ -1,52 +1,40 @@
-const { DataTypes } = require("sequelize");
-const sequelize = require("../../database");
+const { Pool } = require("pg");
 const bcrypt = require("bcrypt");
 
-const User = sequelize.define(
-  "User",
-  {
-    sesa: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      primaryKey: true,
-      unique: true,
-    },
-    name: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    email: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      unique: true,
-    },
-    encrypted_password: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    role: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
+// Buat instance pool dengan koneksi dari environment variable
+const pool = new Pool({
+  connectionString: process.env.POSTGRES_URL,
+  ssl: {
+    rejectUnauthorized: false,
   },
-  {
-    timestamps: true,
-    tableName: "users",
-    hooks: {
-      beforeCreate: async (user) => {
-        if (user.password) {
-          const salt = await bcrypt.genSalt(10);
-          user.encrypted_password = await bcrypt.hash(user.password, salt);
-        }
-      },
-      beforeUpdate: async (user) => {
-        if (user.changed("password")) {
-          const salt = await bcrypt.genSalt(10);
-          user.encrypted_password = await bcrypt.hash(user.password, salt);
-        }
-      },
-    },
-  }
-);
+});
 
-module.exports = { User };
+// Fungsi untuk mendapatkan semua pengguna
+const getAllUsers = async () => {
+  const client = await pool.connect();
+  try {
+    const res = await client.query("SELECT * FROM users");
+    return res.rows;
+  } finally {
+    client.release();
+  }
+};
+
+// Fungsi untuk membuat pengguna baru
+const createUser = async (user) => {
+  const { sesa, name, email, password, role } = user;
+  const client = await pool.connect();
+  const hashedPassword = await bcrypt.hash(password, 10);
+
+  try {
+    const res = await client.query("INSERT INTO users (sesa, name, email, password, role) VALUES ($1, $2, $3, $4, $5) RETURNING *", [sesa, name, email, hashedPassword, role]);
+    return res.rows[0];
+  } finally {
+    client.release();
+  }
+};
+
+module.exports = {
+  getAllUsers,
+  createUser,
+};
