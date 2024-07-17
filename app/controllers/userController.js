@@ -1,5 +1,4 @@
 const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
 const UserModel = require("../models/userModel");
 
 const UserController = {
@@ -9,11 +8,7 @@ const UserController = {
     const hashedPassword = await bcrypt.hash(password, 10); // 10 is the salt rounds
 
     try {
-      // Generate token
-      const token = jwt.sign({ email }, process.env.JWT_SECRET, { expiresIn: "1h" });
-
-      // Create user
-      const user = await UserModel.createUser(sesa, name, email, hashedPassword, role, level, token);
+      const user = await UserModel.createUser(sesa, name, email, hashedPassword, role, level);
       res.status(201).json(user);
     } catch (error) {
       // Log detailed error information
