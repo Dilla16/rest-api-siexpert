@@ -4,7 +4,7 @@ const UserModel = {
   async createUser(sesa, name, email, password, role, level) {
     const query = `
       INSERT INTO users (sesa, name, email, password, role, level)
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      VALUES ($1, $2, $3, $4, $5, $6)
       RETURNING *;
     `;
     const values = [sesa, name, email, password, role, level];
