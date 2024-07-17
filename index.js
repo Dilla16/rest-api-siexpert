@@ -1,6 +1,7 @@
 const express = require("express");
-const corsMiddleware = require("./cors"); // Import CORS middleware
+const corsMiddleware = require("./cors");
 const userRoutes = require("./app/routes/userRoute");
+require("dotenv").config();
 
 const app = express();
 const port = process.env.PORT || 3000;

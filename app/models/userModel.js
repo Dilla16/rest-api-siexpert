@@ -1,23 +1,36 @@
-const db = require("../../database");
+const client = require("../../database");
 
 const UserModel = {
-  async createUser(sesa, name, email, password, role, level) {
+  async createUser(sesa, name, email, password, role, level, token) {
     const query = `
-      INSERT INTO users (sesa, name, email, encrypted_password, role, level)
-      VALUES ($1, $2, $3, $4, $5, $6)
+      INSERT INTO users (sesa, name, email, password, role, level, token)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
       RETURNING *;
     `;
-    const values = [sesa, name, email, password, role, level];
+    const values = [sesa, name, email, password, role, level, token];
 
-    const result = await db.query(query, values);
-    return result.rows[0];
+    try {
+      const result = await client.query(query, values);
+      return result.rows[0];
+    } catch (error) {
+      console.error("Error creating user:", error);
+      throw error;
+    }
   },
 
   async getUsers() {
-    const result = await db.query("SELECT * FROM users");
-    return result.rows;
+    const query = `
+      SELECT * FROM users;
+    `;
+
+    try {
+      const result = await client.query(query);
+      return result.rows;
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      throw error;
+    }
   },
-  // Tambahkan fungsi lain sesuai kebutuhan
 };
 
 module.exports = UserModel;
