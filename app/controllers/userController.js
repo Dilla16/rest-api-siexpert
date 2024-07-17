@@ -16,8 +16,20 @@ const UserController = {
       const user = await UserModel.createUser(sesa, name, email, hashedPassword, role, level, token);
       res.status(201).json(user);
     } catch (error) {
-      console.error("Error creating user:", error);
-      res.status(500).json({ error: "Internal Server Error" });
+      // Log detailed error information
+      console.error("Error creating user:", error.message || error);
+
+      // Respond with a more detailed error message
+      if (error.name === "ValidationError") {
+        return res.status(400).json({ error: error.message });
+      }
+
+      if (error.code === "23505") {
+        // PostgreSQL unique violation error
+        return res.status(409).json({ error: "Email already exists." });
+      }
+
+      res.status(500).json({ error: "Internal Server Error", details: error.message });
     }
   },
 
