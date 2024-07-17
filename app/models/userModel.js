@@ -1,13 +1,13 @@
 const client = require("../../database");
 
 const UserModel = {
-  async createUser(sesa, name, email, password, role, level, token) {
+  async createUser(sesa, name, email, password, role, level) {
     const query = `
-      INSERT INTO users (sesa, name, email, password, role, level, token)
+      INSERT INTO users (sesa, name, email, password, role, level)
       VALUES ($1, $2, $3, $4, $5, $6, $7)
       RETURNING *;
     `;
-    const values = [sesa, name, email, password, role, level, token];
+    const values = [sesa, name, email, password, role, level];
 
     try {
       const result = await client.query(query, values);
