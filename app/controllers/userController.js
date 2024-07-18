@@ -1,4 +1,5 @@
 const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 const UserModel = require("../models/userModel");
 const authServices = require("../services/authService");
 
@@ -6,22 +7,22 @@ const UserController = {
   async create(req, res) {
     const { sesa, name, email, password, role, level } = req.body;
 
-    const hashedPassword = await bcrypt.hash(password, 10); // 10 is the salt rounds
+    if (!sesa || !name || !email || !password || !role || !level) {
+      return res.status(400).json({ error: "All fields are required" });
+    }
 
     try {
+      const hashedPassword = await authServices.encryptPassword(password);
       const user = await UserModel.createUser(sesa, name, email, hashedPassword, role, level);
       res.status(201).json(user);
     } catch (error) {
-      // Log detailed error information
       console.error("Error creating user:", error.message || error);
 
-      // Respond with a more detailed error message
       if (error.name === "ValidationError") {
         return res.status(400).json({ error: error.message });
       }
 
       if (error.code === "23505") {
-        // PostgreSQL unique violation error
         return res.status(409).json({ error: "Email already exists." });
       }
 
@@ -39,7 +40,11 @@ const UserController = {
   },
 
   async deleteBySesa(req, res) {
-    const { sesa } = req.params; // Get sesa from the request parameters
+    const { sesa } = req.params;
+
+    if (!sesa) {
+      return res.status(400).json({ error: "Sesa is required" });
+    }
 
     try {
       const result = await UserModel.deleteUserBySesa(sesa);
@@ -48,7 +53,7 @@ const UserController = {
         return res.status(404).json({ error: "User not found." });
       }
 
-      res.status(204).send(); // No content to return on successful deletion
+      res.status(204).send();
     } catch (error) {
       console.error("Error deleting user:", error.message || error);
       res.status(500).json({ error: "Internal Server Error", details: error.message });
@@ -59,9 +64,13 @@ const UserController = {
     const { sesa } = req.params;
     const { name, email, password, role, level } = req.body;
 
+    if (!sesa || !name || !email || !role || !level) {
+      return res.status(400).json({ error: "All fields are required except password" });
+    }
+
     let hashedPassword;
     if (password) {
-      hashedPassword = await bcrypt.hash(password, 10); // Hash the password if provided
+      hashedPassword = await authServices.encryptPassword(password);
     }
 
     try {
@@ -89,6 +98,10 @@ const UserController = {
 
   async login(req, res) {
     const { sesa, password } = req.body;
+
+    if (!sesa || !password) {
+      return res.status(400).json({ error: "Sesa and Password are required" });
+    }
 
     try {
       const user = await UserModel.findUserBySesa(sesa);
