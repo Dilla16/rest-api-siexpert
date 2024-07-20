@@ -1,5 +1,6 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const UserModel = require("../models/userModel");
 
 const SALT = 10;
 
@@ -21,11 +22,9 @@ exports.checkedPassword = async (inputPassword, hashedPassword) => {
   }
 };
 
-const JWT_SECRET = "Siexpert2024";
-
 exports.createToken = (payload) => {
   try {
-    const token = jwt.sign(payload, JWT_SECRET, { expiresIn: "1h" });
+    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "1h" });
     return token;
   } catch (err) {
     throw new Error(err);
@@ -33,5 +32,31 @@ exports.createToken = (payload) => {
 };
 
 const verifyToken = (token) => {
-  return jwt.verify(token, JWT_SECRET_KEY);
+  return jwt.verify(token, process.env.JWT_SECRET);
+};
+
+exports.authorize = async (bearerToken) => {
+  try {
+    if (!bearerToken) {
+      res.status(401).json({
+        status: "FAIL",
+        message: "Unauthorized",
+      });
+      throw new ApplicationError("Unauthorized", 401);
+    }
+    const token = bearerToken.split("Bearer ")[1];
+
+    const decoded = await verifyToken(token);
+
+    const { sesa } = decoded;
+
+    const user = await UserModel.findUserBySesa(sesa);
+
+    if (!user) {
+      throw new ApplicationError("Unauthorized", 401);
+    }
+    return user;
+  } catch (err) {
+    throw new ApplicationError(err.message, err.statusCode || 500);
+  }
 };
