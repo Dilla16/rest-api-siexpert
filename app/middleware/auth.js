@@ -1,97 +1,20 @@
-const authService = require("../services/auth");
+const jwt = require("jsonwebtoken");
 
-exports.authorize = async (req, res, next) => {
+const authMiddleware = (req, res, next) => {
+  const token = req.headers.authorization?.split(" ")[1]; // Mengambil token dari header Authorization
+
+  if (!token) {
+    return res.status(401).json({ error: "Unauthorized: Token not provided" });
+  }
+
   try {
-    const bearerToken = req.headers.authorization;
-
-    if (!bearerToken) {
-      throw new Error("Unauthorized");
-    }
-
-    const token = bearerToken.split("Bearer ")[1];
-
-    const decoded = await authService.verifyToken(token);
-
-    req.user = decoded;
-    next();
-  } catch (err) {
-    res.status(401).json({
-      status: "FAIL",
-      message: "Unauthorized",
-    });
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.userData = decoded; // Menyimpan data pengguna yang di-decode dalam req.userData
+    next(); // Lanjut ke middleware atau handler berikutnya
+  } catch (error) {
+    console.error("Error verifying token:", error.message || error);
+    return res.status(401).json({ error: "Unauthorized: Invalid token" });
   }
 };
 
-// exports.isSuperAdmin = (req, res, next) => {
-//   const { role } = req.user;
-
-//   if (role !== "SUPERADMIN") {
-//     res.status(403).json({
-//       status: "FAIL",
-//       message: "Forbidden!",
-//     });
-//     return;
-//   }
-//   next();
-// };
-
-// exports.isSuperOrAdmin = (req, res, next) => {
-//   const { role } = req.user;
-
-//   if (role !== "SUPERADMIN" && role !== "ADMIN") {
-//     res.status(403).json({
-//       status: "FAIL",
-//       message: "Forbidden!",
-//     });
-//     return;
-//   }
-//   next();
-// };
-
-// app/middleware/auth.js
-const authService = require("../services/auth");
-
-exports.authorize = async (req, res, next) => {
-  try {
-    const bearerToken = req.headers.authorization;
-
-    if (!bearerToken) {
-      throw new Error("Token Required");
-    }
-
-    const user = await authService.authorize(bearerToken);
-    req.user = user;
-    next();
-  } catch (err) {
-    res.status(401).json({
-      status: "FAIL",
-      message: err.message || "Unauthorized",
-    });
-  }
-};
-
-exports.isSuperAdmin = (req, res, next) => {
-  const { role } = req.user;
-
-  if (role !== "SUPERADMIN") {
-    res.status(403).json({
-      status: "FAIL",
-      message: "FORBIDDEN!",
-    });
-    return;
-  }
-  next();
-};
-
-exports.isSuperOrAdmin = (req, res, next) => {
-  const { role } = req.user;
-
-  if (role !== "SUPERADMIN" && role !== "ADMIN") {
-    res.status(403).json({
-      status: "FAIL",
-      message: "FORBIDDEN!",
-    });
-    return;
-  }
-  next();
-};
+module.exports = authMiddleware;
