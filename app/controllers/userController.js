@@ -110,7 +110,7 @@ const UserController = {
         return res.status(404).json({ error: "Sesa not found" });
       }
 
-      const isPasswordValid = await authServices.checkedPassword(password, user.encrypted_password);
+      const isPasswordValid = await authServices.checkedPassword(password, user.password);
 
       if (!isPasswordValid) {
         return res.status(401).json({ error: "Password is incorrect" });

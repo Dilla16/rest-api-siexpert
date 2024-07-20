@@ -21,11 +21,17 @@ exports.checkedPassword = async (inputPassword, hashedPassword) => {
   }
 };
 
+const JWT_SECRET = "Siexpert2024";
+
 exports.createToken = (payload) => {
   try {
-    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "1h" });
+    const token = jwt.sign(payload, JWT_SECRET, { expiresIn: "1h" });
     return token;
   } catch (err) {
     throw new Error(err);
   }
+};
+
+const verifyToken = (token) => {
+  return jwt.verify(token, JWT_SECRET_KEY);
 };
