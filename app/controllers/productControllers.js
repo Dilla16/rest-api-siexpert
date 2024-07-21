@@ -39,38 +39,8 @@ const productControllers = {
 
   async getAllProducts(req, res) {
     try {
-      // Fetch all products
       const products = await productModels.productFindAll();
-
-      // Extract unique family IDs and sector IDs from products
-      const familyIds = [...new Set(products.map((product) => product.family_id))];
-      const sectorIds = [...new Set(products.map((product) => product.sector_id))];
-
-      // Fetch families by family IDs
-      const families = await productsModels.findFamiliesByIds(familyIds);
-
-      // Fetch sectors by sector IDs
-      const sectors = await productsModels.findSectorsByIds(sectorIds);
-
-      // Map family and sector data by their IDs for quick lookup
-      const familyMap = families.reduce((acc, family) => {
-        acc[family.id] = family;
-        return acc;
-      }, {});
-
-      const sectorMap = sectors.reduce((acc, sector) => {
-        acc[sector.id] = sector;
-        return acc;
-      }, {});
-
-      // Add family and sector details to products
-      const enrichedProducts = products.map((product) => ({
-        ...product,
-        family_name: familyMap[product.family_id]?.name || "Unknown",
-        sector_name: sectorMap[product.sector_id]?.name || "Unknown",
-      }));
-
-      res.status(200).json(enrichedProducts);
+      res.status(200).json(products);
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
