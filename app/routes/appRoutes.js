@@ -34,7 +34,7 @@ router.delete("/returns/:id", returControllers.deleteReturnById);
 //analyze
 router.get("/analyses", analyzeControllers.getAllAnalyses);
 router.get("/analyses/:id", analyzeControllers.getAnalysisById);
-router.post("/analyses", analyzeControllers.createAnalysis);
+// router.post("/analyses", analyzeControllers.createAnalysis);
 router.put("/analyses/:id", analyzeControllers.updateAnalysisById);
 router.delete("/analyses/:id", analyzeControllers.deleteAnalysisById);
 

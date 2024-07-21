@@ -1,4 +1,4 @@
-const returModels = require("../models/returModels");
+const returModels = require("../models/returnModels");
 
 const ReturController = {
   async getAllReturns(req, res) {
