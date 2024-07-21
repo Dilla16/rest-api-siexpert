@@ -24,14 +24,40 @@ const productModels = {
   },
 
   async productFindAll() {
-    const result = await db.query("SELECT * FROM products");
-    return result.rows;
+    try {
+      const [rows] = await db.query("SELECT * FROM products");
+      return rows;
+    } catch (error) {
+      throw new Error("Error fetching products: " + error.message);
+    }
   },
 
   async createProduct(product) {
     const { reference_name, sector_id, family_id, created_by } = product;
     const result = await db.query("INSERT INTO products (reference_name, sector_id, family_id, created_by, created_at) VALUES ($1, $2, $3, $4, NOW()) RETURNING *", [reference_name, sector_id, family_id, created_by]);
     return result.rows[0];
+  },
+
+  async findFamiliesByIds(ids) {
+    if (!ids.length) return []; // Return empty array if no IDs are provided
+
+    try {
+      const [rows] = await db.query("SELECT * FROM families WHERE id IN (?)", [ids]);
+      return rows;
+    } catch (error) {
+      throw new Error("Error fetching families: " + error.message);
+    }
+  },
+
+  async findSectorsByIds(ids) {
+    if (!ids.length) return []; // Return empty array if no IDs are provided
+
+    try {
+      const [rows] = await db.query("SELECT * FROM sectors WHERE id IN (?)", [ids]);
+      return rows;
+    } catch (error) {
+      throw new Error("Error fetching sectors: " + error.message);
+    }
   },
 };
 
