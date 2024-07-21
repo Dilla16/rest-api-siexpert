@@ -1,6 +1,6 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const UserModel = require("../models/userModel");
+const UserModel = require("../models/userModels");
 const authServices = require("../services/authService");
 
 const UserController = {
