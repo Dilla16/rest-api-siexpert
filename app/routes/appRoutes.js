@@ -1,6 +1,6 @@
 const express = require("express");
-const UserController = require("../controllers/userController");
-const productController = require("../controllers/productControllers");
+const UserController = require("../controllers/userControllers");
+const productControllers = require("../controllers/productControllers");
 const returControllers = require("../controllers/returControllers");
 const analyzeControllers = require("../controllers/analyzeControllers");
 const authMiddleware = require("../middleware/auth");
@@ -17,12 +17,12 @@ router.delete("/users/:sesa", UserController.deleteBySesa);
 router.put("/users/:sesa", authMiddleware, UserController.update);
 
 //products
-router.get("/sectors", productController.getAllSectors);
-router.post("/sectors", productController.createSector);
-router.get("/families", productController.getAllFamilies);
-router.post("/families", productController.createFamily);
-router.get("/products", productController.getAllProducts);
-router.post("/products", productController.createProduct);
+router.get("/sectors", productControllers.getAllSectors);
+router.post("/sectors", productControllers.createSector);
+router.get("/families", productControllers.getAllFamilies);
+router.post("/families", productControllers.createFamily);
+router.get("/products", productControllers.getAllProducts);
+router.post("/products", productControllers.createProduct);
 
 //return
 router.get("/returns", returControllers.getAllReturns);
