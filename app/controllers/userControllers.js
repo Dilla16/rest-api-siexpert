@@ -118,7 +118,7 @@ const UserController = {
     }
 
     try {
-      const user = await UserModel.findUserBySesa(sesa);
+      const user = await UserModel.getUserBySesa(sesa);
 
       if (!user) {
         return res.status(404).json({ error: "Sesa not found" });
