@@ -24,19 +24,18 @@ const UserModel = {
     return await db.query(query, values);
   },
 
-  async updateUser(sesa, { name, email, hashedPassword, role, level }) {
+  async updateUser(sesa, { name, email, role, level }) {
     const query = `
       UPDATE users
       SET 
         name = COALESCE($2, name),
         email = COALESCE($3, email),
-        password = COALESCE($4, password),
-        role = COALESCE($5, role),
-        level = COALESCE($6, level)
+        role = COALESCE($4, role),
+        level = COALESCE($5, level)
       WHERE sesa = $1
       RETURNING *
     `;
-    const values = [sesa, name, email, hashedPassword, role, level];
+    const values = [sesa, name, email, role, level];
     const result = await db.query(query, values);
     return result.rows[0];
   },

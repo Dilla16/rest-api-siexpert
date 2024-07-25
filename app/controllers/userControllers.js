@@ -23,7 +23,7 @@ const UserController = {
       }
 
       if (error.code === "23505") {
-        return res.status(409).json({ error: "Email already exists." });
+        return res.status(409).json({ error: "User already exists." });
       }
 
       res.status(500).json({ error: "Internal Server Error", details: error.message });
@@ -76,25 +76,25 @@ const UserController = {
 
   async update(req, res) {
     const { sesa } = req.params;
-    const { name, email, password, role, level } = req.body;
+    const { name, email, role, level } = req.body; // Excluding password from update fields
 
     if (!sesa || !name || !email || !role || !level) {
       return res.status(400).json({ error: "All fields are required except password" });
     }
 
-    let hashedPassword;
-    if (password) {
-      hashedPassword = await authServices.encryptPassword(password);
-    }
-
     try {
-      const user = await UserModel.updateUser(sesa, { name, email, hashedPassword, role, level });
-
-      if (!user) {
+      const existingUser = await UserModel.getUserBySesa(sesa);
+      if (!existingUser) {
         return res.status(404).json({ error: "User not found." });
       }
 
-      res.status(200).json(user);
+      const updatedUser = await UserModel.updateUser(sesa, { name, email, role, level });
+
+      if (!updatedUser) {
+        return res.status(404).json({ error: "User not found." });
+      }
+
+      res.status(200).json(updatedUser);
     } catch (error) {
       console.error("Error updating user:", error.message || error);
 
