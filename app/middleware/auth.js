@@ -1,7 +1,7 @@
 const jwt = require("jsonwebtoken");
 
 const authMiddleware = (req, res, next) => {
-  const token = req.headers.authorization?.split(" ")[1]; // Mengambil token dari header Authorization
+  const token = req.headers.authorization?.split(" ")[1];
 
   if (!token) {
     return res.status(401).json({ error: "Unauthorized: Token not provided" });
@@ -9,8 +9,8 @@ const authMiddleware = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.userData = decoded; // Menyimpan data pengguna yang di-decode dalam req.userData
-    next(); // Lanjut ke middleware atau handler berikutnya
+    req.userData = decoded;
+    next();
   } catch (error) {
     console.error("Error verifying token:", error.message || error);
     return res.status(401).json({ error: "Unauthorized: Invalid token" });
@@ -25,7 +25,7 @@ const checkTokenExpiration = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded; // Add the decoded user information to the request object
+    req.user = decoded;
     next();
   } catch (error) {
     if (error.name === "TokenExpiredError") {

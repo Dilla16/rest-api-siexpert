@@ -15,7 +15,7 @@ router.get("/users", UserController.getAll);
 router.get("/users/:sesa", UserController.getUserBySesa);
 router.post("/users", UserController.create);
 router.delete("/users/:sesa", UserController.deleteBySesa);
-router.put("/users/:sesa", authMiddleware, UserController.update);
+router.put("/users/:sesa", UserController.update);
 
 // sectors
 router.get("/sectors", productControllers.getAllSectors);
