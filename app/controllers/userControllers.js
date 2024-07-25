@@ -151,7 +151,7 @@ const UserController = {
 
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      const user = await UserModel.findUserBySesa(decoded.sesa);
+      const user = await UserModel.getUserBySesa(decoded.sesa);
 
       if (!user) {
         return res.status(404).json({ error: "User not found" });
