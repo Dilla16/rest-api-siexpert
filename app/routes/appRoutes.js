@@ -12,7 +12,7 @@ router.post("/login", UserController.login);
 //users
 router.get("/profile", UserController.getProfile);
 router.get("/users", UserController.getAll);
-router.get("/users/:sesa", UserController.getAll);
+router.get("/users/:sesa", UserController.getUserBySesa);
 router.post("/users", UserController.create);
 router.delete("/users/:sesa", UserController.deleteBySesa);
 router.put("/users/:sesa", authMiddleware, UserController.update);

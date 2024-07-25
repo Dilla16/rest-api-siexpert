@@ -39,6 +39,20 @@ const UserController = {
     }
   },
 
+  async getUserBySesa(req, res) {
+    try {
+      const { sesa } = req.params;
+      const user = await UserModel.getUserBySesa(sesa);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      res.json(user);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      res.status(500).json({ message: "Internal Server Error" });
+    }
+  },
+
   async deleteBySesa(req, res) {
     const { sesa } = req.params;
 

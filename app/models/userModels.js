@@ -41,7 +41,7 @@ const UserModel = {
     return result.rows[0];
   },
 
-  async findUserBySesa(sesa) {
+  async getUserBySesa(sesa) {
     const query = "SELECT * FROM users WHERE sesa = $1";
     const values = [sesa];
     const result = await db.query(query, values);
