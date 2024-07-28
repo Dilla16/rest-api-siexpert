@@ -77,9 +77,10 @@ const productModels = {
     return result.rows;
   },
 
-  async createProduct(product) {
-    const { reference_name, sector_id, family_id, created_by } = product;
-    const result = await db.query("INSERT INTO products (reference_name, sector_id, family_id, created_by, created_at) VALUES ($1, $2, $3, $4, NOW()) RETURNING *", [reference_name, sector_id, family_id, created_by]);
+  async createProduct(product, user) {
+    const { product_name, family_id } = product;
+    const created_by = user.sesa;
+    const result = await db.query("INSERT INTO products (product_name, family_id, created_by, created_at) VALUES ($1, $2, $3, NOW()) RETURNING *", [product_name, family_id, created_by]);
     return result.rows[0];
   },
 };

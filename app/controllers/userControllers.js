@@ -5,15 +5,16 @@ const authServices = require("../services/authService");
 
 const UserController = {
   async create(req, res) {
-    const { sesa, name, email, password, role, level } = req.body;
+    const { sesa, name, email, password, role, department } = req.body;
 
-    if (!sesa || !name || !email || !password || !role || !level) {
-      return res.status(400).json({ error: "All fields are required" });
+    // Check if all required fields are provided and if department is an array
+    if (!sesa || !name || !email || !password || !role || !Array.isArray(department) || department.length === 0) {
+      return res.status(400).json({ error: "All fields are required and department must be a non-empty array" });
     }
 
     try {
       const hashedPassword = await authServices.encryptPassword(password);
-      const user = await UserModel.createUser(sesa, name, email, hashedPassword, role, level);
+      const user = await UserModel.createUser(sesa, name, email, hashedPassword, role, department);
       res.status(201).json(user);
     } catch (error) {
       console.error("Error creating user:", error.message || error);
@@ -76,10 +77,10 @@ const UserController = {
 
   async update(req, res) {
     const { sesa } = req.params;
-    const { name, email, role, level } = req.body; // Excluding password from update fields
+    const { name, email, role, department } = req.body; // Excluding password from update fields
 
-    if (!sesa || !name || !email || !role || !level) {
-      return res.status(400).json({ error: "All fields are required except password" });
+    if (!sesa || !name || !email || !role || !Array.isArray(department) || department.length === 0) {
+      return res.status(400).json({ error: "All fields are required and department must be a non-empty array" });
     }
 
     try {
@@ -88,11 +89,7 @@ const UserController = {
         return res.status(404).json({ error: "User not found." });
       }
 
-      const updatedUser = await UserModel.updateUser(sesa, { name, email, role, level });
-
-      if (!updatedUser) {
-        return res.status(404).json({ error: "User not found." });
-      }
+      const updatedUser = await UserModel.updateUser(sesa, { name, email, role, department });
 
       res.status(200).json(updatedUser);
     } catch (error) {

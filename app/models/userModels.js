@@ -1,13 +1,16 @@
 const db = require("../../database");
 
 const UserModel = {
-  async createUser(sesa, name, email, hashedPassword, role, level) {
+  async createUser(sesa, name, email, hashedPassword, role, department) {
+    const departmentFormatted = `{${department.map((dep) => `"${dep}"`).join(",")}}`;
+
     const query = `
-      INSERT INTO users (sesa, name, email, password, role, level)
+      INSERT INTO users (sesa, name, email, password, role, department)
       VALUES ($1, $2, $3, $4, $5, $6)
       RETURNING *
     `;
-    const values = [sesa, name, email, hashedPassword, role, level];
+    const values = [sesa, name, email, hashedPassword, role, departmentFormatted];
+
     const result = await db.query(query, values);
     return result.rows[0];
   },
@@ -24,18 +27,20 @@ const UserModel = {
     return await db.query(query, values);
   },
 
-  async updateUser(sesa, { name, email, role, level }) {
+  async updateUser(sesa, { name, email, role, department }) {
+    const departmentFormatted = department ? `{${department.map((dep) => `"${dep}"`).join(",")}}` : null;
+
     const query = `
       UPDATE users
       SET 
         name = COALESCE($2, name),
         email = COALESCE($3, email),
         role = COALESCE($4, role),
-        level = COALESCE($5, level)
+        department = COALESCE($5, department)
       WHERE sesa = $1
       RETURNING *
     `;
-    const values = [sesa, name, email, role, level];
+    const values = [sesa, name, email, role, departmentFormatted];
     const result = await db.query(query, values);
     return result.rows[0];
   },
