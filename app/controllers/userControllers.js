@@ -121,13 +121,16 @@ const UserController = {
       const user = await UserModel.getUserBySesa(sesa);
 
       if (!user) {
-        return res.status(404).json({ error: "Sesa not found" });
+        return res.status(404).json({
+          status: "FAILED",
+          message: "Sesa not found",
+        });
       }
 
       const isPasswordValid = await authServices.checkedPassword(password, user.password);
 
       if (!isPasswordValid) {
-        return res.status(401).json({ error: "Password is incorrect" });
+        return res.status(401).json({ status: "FAILED", message: "Password is incorrect" });
       }
 
       const token = jwt.sign({ sesa: user.sesa }, process.env.JWT_SECRET, { expiresIn: "1h" });
