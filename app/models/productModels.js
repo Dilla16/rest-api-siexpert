@@ -24,12 +24,9 @@ const productModels = {
   },
 
   async productFindAll() {
-    try {
-      const [rows] = await db.query("SELECT * FROM products");
-      return rows;
-    } catch (error) {
-      throw new Error("Error fetching products: " + error.message);
-    }
+    const query = "SELECT * FROM products";
+    const result = await db.query(query);
+    return result.rows;
   },
 
   async createProduct(product) {
