@@ -56,6 +56,15 @@ const productModels = {
     return result.rows[0];
   },
 
+  async getFamiliesBySector(sector_id) {
+    try {
+      const result = await db.query("SELECT * FROM families WHERE sector_id = $1", [sector_id]);
+      return result.rows;
+    } catch (error) {
+      throw error;
+    }
+  },
+
   async deleteFamilyById(family_id) {
     const query = "DELETE FROM families WHERE family_id = $1";
     const values = [family_id];

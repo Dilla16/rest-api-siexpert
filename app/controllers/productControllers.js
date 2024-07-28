@@ -78,6 +78,22 @@ const productControllers = {
     }
   },
 
+  async getFamiliesBySector(req, res) {
+    const { sector_id } = req.params;
+
+    if (!sector_id) {
+      return res.status(400).json({ error: "Sector ID is required" });
+    }
+
+    try {
+      const families = await productModels.getFamiliesBySector(sector_id);
+      res.json(families);
+    } catch (error) {
+      console.error("Error fetching families:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  },
+
   async createFamily(req, res) {
     try {
       const family = await productModels.createFamilies(req.body);

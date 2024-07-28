@@ -25,6 +25,7 @@ router.delete("/sectors/:sector_id", productControllers.deleteSector);
 
 // families
 router.get("/families", productControllers.getAllFamilies);
+router.get("/families/:sector_id", productControllers.getFamiliesBySector);
 router.post("/families", productControllers.createFamily);
 router.get("/families/:family_id", productControllers.getFamilyById);
 router.delete("/families/:family_id", productControllers.deleteFamily);
