@@ -45,7 +45,7 @@ const productModels = {
 
   async createFamilies(family) {
     const { family_name, sector_id } = family;
-    const result = await db.query("INSERT INTO families (family_name, sector_id) VALUES ($1, $2 *", [family_name, sector_id]);
+    const result = await db.query("INSERT INTO families (family_id, family_name, sector_id) VALUES ($1, $1, $2) RETURNING *", [family_name, sector_id]);
     return result.rows[0];
   },
 
