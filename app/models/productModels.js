@@ -1,6 +1,7 @@
 const db = require("../../database");
 
 const productModels = {
+  /// SECTORS
   async sectorFindAll() {
     const result = await db.query("SELECT * FROM sectors");
     return result.rows;
@@ -12,6 +13,31 @@ const productModels = {
     return result.rows[0];
   },
 
+  async getSectorById(sector_id) {
+    const query = "SELECT * FROM sectors WHERE sector_id = $1";
+    const values = [sector_id];
+    const result = await db.query(query, values);
+    return result.rows[0];
+  },
+
+  async findSectorsByIds(ids) {
+    if (!ids.length) return []; // Return empty array if no IDs are provided
+
+    try {
+      const [rows] = await db.query("SELECT * FROM sectors WHERE id IN (?)", [ids]);
+      return rows;
+    } catch (error) {
+      throw new Error("Error fetching sectors: " + error.message);
+    }
+  },
+
+  async deleteSectorById(sector_id) {
+    const query = "DELETE FROM sectors WHERE sector_id = $1";
+    const values = [sector_id];
+    return await db.query(query, values);
+  },
+
+  /// FAMILIES
   async familyFindAll() {
     const result = await db.query("SELECT * FROM families");
     return result.rows;
@@ -21,6 +47,19 @@ const productModels = {
     const { family_name, sector_id, created_by } = family;
     const result = await db.query("INSERT INTO families (family_name, sector_id, created_by, created_at) VALUES ($1, $2, $3, NOW()) RETURNING *", [family_name, sector_id, created_by]);
     return result.rows[0];
+  },
+
+  async getFamilyById(family_id) {
+    const query = "SELECT * FROM families WHERE family_id = $1";
+    const values = [family_id];
+    const result = await db.query(query, values);
+    return result.rows[0];
+  },
+
+  async deleteFamilyById(family_id) {
+    const query = "DELETE FROM families WHERE family_id = $1";
+    const values = [family_id];
+    return await db.query(query, values);
   },
 
   async productFindAll() {
@@ -33,28 +72,6 @@ const productModels = {
     const { reference_name, sector_id, family_id, created_by } = product;
     const result = await db.query("INSERT INTO products (reference_name, sector_id, family_id, created_by, created_at) VALUES ($1, $2, $3, $4, NOW()) RETURNING *", [reference_name, sector_id, family_id, created_by]);
     return result.rows[0];
-  },
-
-  async findFamiliesByIds(ids) {
-    if (!ids.length) return []; // Return empty array if no IDs are provided
-
-    try {
-      const [rows] = await db.query("SELECT * FROM families WHERE id IN (?)", [ids]);
-      return rows;
-    } catch (error) {
-      throw new Error("Error fetching families: " + error.message);
-    }
-  },
-
-  async findSectorsByIds(ids) {
-    if (!ids.length) return []; // Return empty array if no IDs are provided
-
-    try {
-      const [rows] = await db.query("SELECT * FROM sectors WHERE id IN (?)", [ids]);
-      return rows;
-    } catch (error) {
-      throw new Error("Error fetching sectors: " + error.message);
-    }
   },
 };
 

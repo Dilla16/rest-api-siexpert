@@ -19,16 +19,21 @@ router.put("/users/:sesa", UserController.update);
 
 // sectors
 router.get("/sectors", productControllers.getAllSectors);
+router.get("/sectors/:sector_id", productControllers.getSectorById);
 router.post("/sectors", productControllers.createSector);
+router.delete("/sectors/:sector_id", productControllers.deleteSector);
 
 // families
 router.get("/families", productControllers.getAllFamilies);
 router.post("/families", productControllers.createFamily);
+router.get("/families/:family_id", productControllers.getFamilyById);
+router.delete("/families/:family_id", productControllers.deleteFamily);
 
 //products
 router.get("/products", productControllers.getAllProducts);
-router.get("/product/:id", productControllers.getProductById);
+router.get("/product/:product_id", productControllers.getProductById);
 router.post("/products", productControllers.createProduct);
+router.delete("/products/:product_id", productControllers.deleteFamily);
 
 //return
 router.get("/returns", returControllers.getAllReturns);

@@ -1,12 +1,27 @@
 const productModels = require("../models/productModels");
 
 const productControllers = {
+  /// SECTORS
   async getAllSectors(req, res) {
     try {
       const sectors = await productModels.sectorFindAll();
       res.status(200).json(sectors);
     } catch (error) {
       res.status(500).json({ error: error.message });
+    }
+  },
+
+  async getSectorById(req, res) {
+    try {
+      const { sector_id } = req.params;
+      const sectors = await productModels.getSectorById(sector_id);
+      if (!sectors) {
+        return res.status(404).json({ message: "Sector not found" });
+      }
+      res.json(sectors);
+    } catch (error) {
+      console.error("Error fetching sector:", error);
+      res.status(500).json({ message: "Internal Server Error" });
     }
   },
 
@@ -19,12 +34,47 @@ const productControllers = {
     }
   },
 
+  async deleteSector(req, res) {
+    const { sector_id } = req.params;
+
+    if (!sector_id) {
+      return res.status(400).json({ error: "sector is required" });
+    }
+
+    try {
+      const result = await productModels.deleteSectorById(sector_id);
+
+      if (result.rowCount === 0) {
+        return res.status(404).json({ error: "Sector not found." });
+      }
+
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting user:", error.message || error);
+      res.status(500).json({ error: "Internal Server Error", details: error.message });
+    }
+  },
+
+  ///FAMILIES
   async getAllFamilies(req, res) {
     try {
       const families = await productModels.familyFindAll();
       res.status(200).json(families);
     } catch (error) {
       res.status(500).json({ error: error.message });
+    }
+  },
+  async getFamilyById(req, res) {
+    try {
+      const { family_id } = req.params;
+      const family = await productModels.getFamilyById(family_id);
+      if (!family) {
+        return res.status(404).json({ message: "Family not found" });
+      }
+      res.json(family);
+    } catch (error) {
+      console.error("Error fetching family:", error);
+      res.status(500).json({ message: "Internal Server Error" });
     }
   },
 
@@ -37,6 +87,28 @@ const productControllers = {
     }
   },
 
+  async deleteFamily(req, res) {
+    const { family_id } = req.params;
+
+    if (!family_id) {
+      return res.status(400).json({ error: "Family ID is required" });
+    }
+
+    try {
+      const result = await productModels.deleteFamilyById(family_id);
+
+      if (result.rowCount === 0) {
+        return res.status(404).json({ error: "Family not found." });
+      }
+
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting family:", error.message || error);
+      res.status(500).json({ error: "Internal Server Error", details: error.message });
+    }
+  },
+
+  /// PRODUCTS
   async getAllProducts(req, res) {
     try {
       const products = await productModels.productFindAll();
