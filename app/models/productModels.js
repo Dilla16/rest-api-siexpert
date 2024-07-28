@@ -7,8 +7,8 @@ const productModels = {
   },
 
   async createSectors(sector) {
-    const { sector_name, created_by } = sector;
-    const result = await db.query("INSERT INTO sectors (sector_name, created_by, created_at) VALUES ($1, $2, NOW()) RETURNING *", [sector_name, created_by]);
+    const { sector_name } = sector;
+    const result = await db.query("INSERT INTO sectors (sector_name) VALUES ($1) ", [sector_name]);
     return result.rows[0];
   },
 
