@@ -205,6 +205,21 @@ const productControllers = {
       res.status(500).json({ error: "Internal server error" });
     }
   },
+  async deleteProduct(req, res) {
+    try {
+      const { product_id } = req.params; // Ambil ID produk dari URL params
+
+      const wasDeleted = await productModels.deleteProduct(product_id);
+      if (!wasDeleted) {
+        return res.status(404).json({ error: "Product not found" });
+      }
+
+      res.status(200).json({ message: "Product deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting product:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  },
 };
 
 module.exports = productControllers;

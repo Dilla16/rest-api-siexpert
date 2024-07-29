@@ -111,6 +111,10 @@ const productModels = {
 
     return result.rows[0];
   },
+  async deleteProduct(product_id) {
+    const result = await db.query(`DELETE FROM products WHERE product_id = $1 RETURNING *`, [product_id]);
+    return result.rowCount > 0;
+  },
 };
 
 module.exports = productModels;
