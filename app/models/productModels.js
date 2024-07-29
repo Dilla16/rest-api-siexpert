@@ -87,10 +87,28 @@ const productModels = {
     return result.rows;
   },
 
-  async createProduct(product, user) {
-    const { product_name, family_id } = product;
-    const created_by = user.sesa;
+  async createProduct(product) {
+    const { product_name, family_id, created_by } = product;
     const result = await db.query("INSERT INTO products (product_name, family_id, created_by, created_at) VALUES ($1, $2, $3, NOW()) RETURNING *", [product_name, family_id, created_by]);
+    return result.rows[0];
+  },
+
+  async updateProduct(product_id, updatedData) {
+    const { product_name, family_id, created_by } = updatedData;
+
+    // Query untuk memperbarui data produk
+    const result = await db.query(
+      `UPDATE products
+         SET product_name = $1, family_id = $2, created_by = $3, created_at = NOW()
+         WHERE product_id = $4
+         RETURNING *`,
+      [product_name, family_id, created_by, product_id]
+    );
+
+    if (result.rowCount === 0) {
+      return null;
+    }
+
     return result.rows[0];
   },
 };

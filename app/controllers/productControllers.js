@@ -185,6 +185,26 @@ const productControllers = {
       res.status(500).json({ error: error.message });
     }
   },
+  async updateProduct(req, res) {
+    try {
+      const { product_id } = req.params;
+      const updatedData = req.body;
+
+      if (!updatedData.product_name || !updatedData.family_id || !updatedData.created_by) {
+        return res.status(400).json({ error: "Product name, family ID, and created by fields are required" });
+      }
+
+      const updatedProduct = await productModels.updateProduct(product_id, updatedData);
+      if (!updatedProduct) {
+        return res.status(404).json({ error: "Product not found" });
+      }
+
+      res.status(200).json(updatedProduct);
+    } catch (error) {
+      console.error("Error updating product:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  },
 };
 
 module.exports = productControllers;
