@@ -89,14 +89,16 @@ const productModels = {
             f.family_id,
             f.family_name,
             s.sector_id,
-            s.sector_name
+            s.sector_name,
+            p.created_by,
+            p.created_at
         FROM products p
         JOIN families f ON p.family_id = f.family_id
         JOIN sectors s ON f.sector_id = s.sector_id;
     `;
     const result = await db.query(query);
 
-    // Format the result to the desired structure
+    // Format the result to include created_by and created_at
     const formattedResult = result.rows.map((row) => ({
       product_id: row.product_id,
       product_name: row.product_name,
@@ -108,6 +110,8 @@ const productModels = {
         sector_id: row.sector_id,
         sector_name: row.sector_name,
       },
+      created_by: row.created_by, // Include created_by field
+      created_at: row.created_at, // Include created_at field
     }));
 
     return formattedResult;
