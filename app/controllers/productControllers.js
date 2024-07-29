@@ -103,6 +103,22 @@ const productControllers = {
     }
   },
 
+  async editFamily(req, res) {
+    const { family_id } = req.params;
+    const familyData = req.body;
+
+    try {
+      const updatedFamily = await productModels.updateFamily(family_id, familyData);
+      if (updatedFamily) {
+        res.status(200).json(updatedFamily);
+      } else {
+        res.status(404).json({ error: "Family not found" });
+      }
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  },
+
   async deleteFamily(req, res) {
     const { family_id } = req.params;
 

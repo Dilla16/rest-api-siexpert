@@ -29,6 +29,7 @@ router.get("/families/:sector_id", productControllers.getFamiliesBySector);
 router.post("/families", productControllers.createFamily);
 router.get("/families/:family_id", productControllers.getFamilyById);
 router.delete("/families/:family_id", productControllers.deleteFamily);
+router.put("/families/:family_id", productControllers.editFamily);
 
 //products
 router.get("/products", productControllers.getAllProducts);

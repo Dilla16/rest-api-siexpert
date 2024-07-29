@@ -56,6 +56,16 @@ const productModels = {
     return result.rows[0];
   },
 
+  async updateFamily(familyId, familyData) {
+    const { family_name, sector_id } = familyData;
+    try {
+      const result = await db.query("UPDATE families SET family_name = $1, sector_id = $2 WHERE family_id = $3 RETURNING *", [family_name, sector_id, familyId]);
+      return result.rows[0];
+    } catch (err) {
+      throw new Error("Error updating family: " + err.message);
+    }
+  },
+
   async getFamiliesBySector(sector_id) {
     try {
       const result = await db.query("SELECT * FROM families WHERE sector_id = $1", [sector_id]);
