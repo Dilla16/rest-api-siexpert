@@ -157,6 +157,11 @@ const UserController = {
         return res.status(404).json({ error: "User not found" });
       }
 
+      // Pastikan department adalah array
+      if (!Array.isArray(user.department)) {
+        user.department = [user.department];
+      }
+
       res.status(200).json(user);
     } catch (error) {
       console.error("Error fetching profile:", error.message || error);

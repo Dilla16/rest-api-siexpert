@@ -49,7 +49,15 @@ const UserModel = {
     const query = "SELECT * FROM users WHERE sesa = $1";
     const values = [sesa];
     const result = await db.query(query, values);
-    return result.rows[0];
+
+    const user = result.rows[0];
+
+    // Pastikan department adalah array
+    if (user && !Array.isArray(user.department)) {
+      user.department = user.department ? [user.department] : [];
+    }
+
+    return user;
   },
 };
 
