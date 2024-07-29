@@ -88,8 +88,8 @@ const productModels = {
   },
 
   async createProduct(product) {
-    const { product_name, family_id, created_by } = product;
-    const result = await db.query("INSERT INTO products (product_name, family_id, created_by, created_at) VALUES ($1, $2, $3, NOW()) RETURNING *", [product_name, family_id, created_by]);
+    const { product_id, product_name, family_id, created_by } = product;
+    const result = await db.query("INSERT INTO products (product_id, product_name, family_id, created_by, created_at) VALUES ($1, $2, $3, $4, NOW()) RETURNING *", [product_id, product_name, family_id, created_by]);
     return result.rows[0];
   },
 
