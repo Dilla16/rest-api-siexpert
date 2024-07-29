@@ -82,9 +82,35 @@ const productModels = {
   },
 
   async productFindAll() {
-    const query = "SELECT * FROM products";
+    const query = `
+        SELECT 
+            p.product_id,
+            p.product_name,
+            f.family_id,
+            f.family_name,
+            s.sector_id,
+            s.sector_name
+        FROM products p
+        JOIN families f ON p.family_id = f.family_id
+        JOIN sectors s ON f.sector_id = s.sector_id;
+    `;
     const result = await db.query(query);
-    return result.rows;
+
+    // Format the result to the desired structure
+    const formattedResult = result.rows.map((row) => ({
+      product_id: row.product_id,
+      product_name: row.product_name,
+      family: {
+        family_id: row.family_id,
+        family_name: row.family_name,
+      },
+      sector: {
+        sector_id: row.sector_id,
+        sector_name: row.sector_name,
+      },
+    }));
+
+    return formattedResult;
   },
 
   async createProduct(product) {
