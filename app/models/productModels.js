@@ -21,7 +21,7 @@ const productModels = {
   },
 
   async findSectorsByIds(ids) {
-    if (!ids.length) return []; // Return empty array if no IDs are provided
+    if (!ids.length) return [];
 
     try {
       const [rows] = await db.query("SELECT * FROM sectors WHERE id IN (?)", [ids]);
@@ -91,6 +91,51 @@ const productModels = {
     const { product_name, family_id, created_by } = product;
     const result = await db.query("INSERT INTO products (product_name, family_id, created_by, created_at) VALUES ($1, $2, $3, NOW()) RETURNING *", [product_name, family_id, created_by]);
     return result.rows[0];
+  },
+
+  async getProductById(product_id) {
+    try {
+      // Ambil data produk
+      const productResult = await db.query(`SELECT * FROM products WHERE product_id = $1`, [product_id]);
+
+      if (productResult.rowCount === 0) {
+        return null;
+      }
+
+      const product = productResult.rows[0];
+
+      // Ambil data keluarga berdasarkan family_id dari produk
+      const familyResult = await db.query(`SELECT * FROM families WHERE family_id = $1`, [product.family_id]);
+
+      const family = familyResult.rowCount > 0 ? familyResult.rows[0] : null;
+
+      // Ambil data sektor berdasarkan sector_id dari keluarga
+      const sectorResult = family ? await db.query(`SELECT * FROM sectors WHERE sector_id = $1`, [family.sector_id]) : { rows: [], rowCount: 0 };
+
+      const sector = sectorResult.rowCount > 0 ? sectorResult.rows[0] : null;
+
+      // Format data produk dengan informasi family dan sector
+      const formattedProduct = {
+        ...product,
+        family: family
+          ? {
+              family_id: family.family_id,
+              family_name: family.family_name,
+              sector: sector
+                ? {
+                    sector_id: sector.sector_id,
+                    sector_name: sector.sector_name,
+                  }
+                : null,
+            }
+          : null,
+      };
+
+      return formattedProduct;
+    } catch (error) {
+      console.error("Error fetching product:", error);
+      throw error;
+    }
   },
 
   async updateProduct(product_id, updatedData) {

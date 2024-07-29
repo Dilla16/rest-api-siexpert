@@ -33,7 +33,7 @@ router.put("/families/:family_id", productControllers.editFamily);
 
 //products
 router.get("/products", productControllers.getAllProducts);
-router.get("/product/:product_id", productControllers.getProductById);
+router.get("/products/:product_id", productControllers.getProductById);
 router.post("/products", productControllers.createProduct);
 router.put("/products/:product_id", productControllers.updateProduct);
 router.delete("/products/:product_id", productControllers.deleteProduct);
