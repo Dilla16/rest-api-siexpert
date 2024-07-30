@@ -117,6 +117,19 @@ const productModels = {
     return formattedResult;
   },
 
+  async getProductsByFamily(family_id) {
+    const query = "SELECT * FROM products WHERE family_id = $1";
+    const values = [family_id];
+
+    try {
+      const result = await db.query(query, values);
+      return result.rows;
+    } catch (error) {
+      console.error("Error fetching products by family:", error);
+      throw error;
+    }
+  },
+
   async createProduct(product) {
     const { product_id, product_name, family_id, created_by } = product;
     const result = await db.query("INSERT INTO products (product_id, product_name, family_id, created_by, created_at) VALUES ($1, $2, $3, $4, NOW()) RETURNING *", [product_id, product_name, family_id, created_by]);

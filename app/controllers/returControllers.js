@@ -58,7 +58,6 @@ const ReturController = {
       const newAnalysis = await returModels.createAnalysis(analysisData);
       console.log("New analysis created:", newAnalysis);
 
-      // Create return with new analysis ID
       const newReturn = await returModels.createReturn({
         retur_no,
         customer_name,
@@ -67,7 +66,7 @@ const ReturController = {
         qty,
         serial_no,
         issue,
-        analyse_id: newAnalysis.analyze_id, // Corrected field name
+        analyse_id: newAnalysis.analyze_id,
       });
       console.log("New return created:", newReturn);
 

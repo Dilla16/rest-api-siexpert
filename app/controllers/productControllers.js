@@ -166,6 +166,18 @@ const productControllers = {
     }
   },
 
+  async getProductsByFamily(req, res) {
+    const { family_id } = req.params;
+
+    try {
+      const products = await productModels.getProductsByFamily(family_id);
+      res.json(products);
+    } catch (error) {
+      console.error("Error fetching products by family:", error);
+      res.status(500).json({ error: "Internal Server Error" });
+    }
+  },
+
   async createProduct(req, res) {
     try {
       const product = await productModels.createProduct(req.body);

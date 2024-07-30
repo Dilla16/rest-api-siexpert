@@ -36,6 +36,7 @@ router.get("/products", productControllers.getAllProducts);
 router.get("/products/:product_id", productControllers.getProductById);
 router.post("/products", productControllers.createProduct);
 router.put("/products/:product_id", productControllers.updateProduct);
+router.get("/products/family/:family_id", productControllers.getProductsByFamily);
 router.delete("/products/:product_id", productControllers.deleteProduct);
 
 //return
