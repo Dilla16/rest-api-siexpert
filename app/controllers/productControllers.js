@@ -180,7 +180,18 @@ const productControllers = {
 
   async createProduct(req, res) {
     try {
-      const product = await productModels.createProduct(req.body);
+      const { product_id, product_name, family_id } = req.body;
+      const created_by = req.user.sesa;
+
+      const productData = {
+        product_id,
+        product_name,
+        family_id,
+        created_by,
+      };
+
+      const product = await productModels.createProduct(productData);
+
       res.status(201).json(product);
     } catch (error) {
       res.status(500).json({ error: error.message });

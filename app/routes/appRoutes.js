@@ -12,7 +12,7 @@ router.post("/login", UserController.login);
 //users
 router.get("/profile", UserController.getProfile);
 router.get("/users", UserController.getAll);
-router.get("/users/:sesa", UserController.getUserBySesa);
+router.get("/users/:sesa", authMiddleware, UserController.getUserBySesa);
 router.post("/users", UserController.create);
 router.delete("/users/:sesa", UserController.deleteBySesa);
 router.put("/users/:sesa", UserController.update);
@@ -34,7 +34,7 @@ router.put("/families/:family_id", productControllers.editFamily);
 //products
 router.get("/products", productControllers.getAllProducts);
 router.get("/products/:product_id", productControllers.getProductById);
-router.post("/products", productControllers.createProduct);
+router.post("/products", authMiddleware, productControllers.createProduct);
 router.put("/products/:product_id", productControllers.updateProduct);
 router.get("/products/family/:family_id", productControllers.getProductsByFamily);
 router.delete("/products/:product_id", productControllers.deleteProduct);
