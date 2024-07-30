@@ -13,7 +13,6 @@ const ReturController = {
 
   async createReturn(req, res) {
     const { returnData } = req.body;
-    const createdBy = req.user ? req.user.username : "unknown"; // Ensure `req.user` exists and has `username`
 
     console.log("Received data:", { returnData });
 
