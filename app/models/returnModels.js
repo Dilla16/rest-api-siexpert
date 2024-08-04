@@ -166,74 +166,69 @@ const returModels = {
   },
 
   async getReturnById(id) {
-    try {
-      const result = await db.query(
-        `
-        SELECT
-          r.retur_id,
-          r.retur_no,
-          r.customer_name,
-          r.country,
-          r.product_id,
-          r.qty,
-          r.serial_no,
-          r.issue,
-          r.analyse_id,
-          a.analyze_id AS analysis_id,
-          a.root_cause,
-          a.defect_type,
-          a.action,
-          a.verification,
-          p.product_name,
-          f.family_name,
-          s.sector_name
-        FROM retur r
-        LEFT JOIN analysis a ON r.analyse_id = a.analyze_id
-        LEFT JOIN products p ON r.product_id = p.product_id
-        LEFT JOIN families f ON p.family_id = f.family_id
-        LEFT JOIN sectors s ON f.sector_id = s.sector_id
-        WHERE r.retur_id = $1
+    const result = await db.query(
+      `
+      SELECT
+        r.retur_id,
+        r.retur_no,
+        r.customer_name,
+        r.country,
+        r.product_id,
+        r.qty,
+        r.serial_no,
+        r.issue,
+        r.analyse_id,
+        a.analyze_id AS analysis_id,
+        a.root_cause,
+        a.defect_type,
+        a.action,
+        a.verification,
+        p.product_name,
+        f.family_name,
+        s.sector_name
+      FROM retur r
+      LEFT JOIN analysis a ON r.analyse_id = a.analyze_id
+      LEFT JOIN products p ON r.product_id = p.product_id
+      LEFT JOIN families f ON p.family_id = f.family_id
+      LEFT JOIN sectors s ON f.sector_id = s.sector_id
+      WHERE r.retur_id = $1
       `,
-        [id]
-      );
+      [id]
+    );
 
-      if (result.rows.length === 0) {
-        return null;
-      }
+    if (result.rows.length === 0) {
+      return null;
+    }
 
-      const returnData = result.rows[0];
+    const returnData = result.rows[0];
 
-      // Format the response object
-      return {
-        retur_id: returnData.retur_id,
-        retur_no: returnData.retur_no,
-        customer_name: returnData.customer_name,
-        country: returnData.country,
-        products: {
-          product_id: returnData.product_id,
-          product_name: returnData.product_name,
-          families: {
-            family_name: returnData.family_name,
-            sectors: {
-              sector_name: returnData.sector_name,
-            },
+    // Format the response object
+    return {
+      retur_id: returnData.retur_id,
+      retur_no: returnData.retur_no,
+      customer_name: returnData.customer_name,
+      country: returnData.country,
+      products: {
+        product_id: returnData.product_id,
+        product_name: returnData.product_name,
+        families: {
+          family_name: returnData.family_name,
+          sectors: {
+            sector_name: returnData.sector_name,
           },
         },
-        qty: returnData.qty,
-        serial_no: returnData.serial_no,
-        issue: returnData.issue,
-        analysis: {
-          analyze_id: returnData.analysis_id,
-          root_cause: returnData.root_cause,
-          defect_type: returnData.defect_type,
-          action: returnData.action,
-          verification: returnData.verification,
-        },
-      };
-    } catch (error) {
-      console.error("Error in getReturnById:", error);
-      throw new Error("Database query failed");
-    }
+      },
+      qty: returnData.qty,
+      serial_no: returnData.serial_no,
+      issue: returnData.issue,
+      analysis: {
+        analyze_id: returnData.analysis_id,
+        root_cause: returnData.root_cause,
+        defect_type: returnData.defect_type,
+        action: returnData.action,
+        verification: returnData.verification,
+      },
+    };
   },
 
   async beginTransaction() {

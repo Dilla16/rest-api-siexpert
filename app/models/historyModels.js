@@ -10,17 +10,33 @@ const historyModels = {
     return result.rows[0];
   },
 
-  async getHistoryByAnalyzeId(analyse_id) {
+  async getHistoryByAnalyseId(analyse_id) {
     try {
       const result = await db.query(
         `SELECT history_id, analyse_id, status, created_at, created_by
-           FROM history
-           WHERE analyse_id = $1`,
+         FROM history
+         WHERE analyse_id = $1
+         ORDER BY created_at DESC`,
         [analyse_id]
       );
       return result.rows;
     } catch (error) {
-      console.error("Error in getHistoryByAnalyzeId:", error);
+      console.error("Error in getHistoryByAnalyseId:", error);
+      throw new Error("Database query failed");
+    }
+  },
+
+  async getHistoryById(history_id) {
+    try {
+      const result = await db.query(
+        `SELECT history_id, analyse_id, status, created_at, created_by
+           FROM history
+           WHERE history_id = $1`,
+        [history_id]
+      );
+      return result.rows[0];
+    } catch (error) {
+      console.error("Error in getHistoryById:", error);
       throw new Error("Database query failed");
     }
   },

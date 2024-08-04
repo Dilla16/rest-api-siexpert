@@ -55,8 +55,7 @@ router.delete("/analysis/:id", analyzeControllers.deleteAnalysisById);
 
 //history
 // // status analysis
-router.get("/history/:analyse_id", historyController.getHistoryByAnalyzeId);
-router.get("/latest-history", historyController.getLatestHistoryEntries);
+router.get("/history/:id", historyController.getHistoryByAnalyseId);
 // router.post("/retur/analysis/assign", analyzeControllers.assignAnalysis);
 // router.post("/retur/analysis/save", analyzeControllers.saveAnalysis);
 // router.post("/retur/analysis/submitted", analyzeControllers.submitAnalysis);
