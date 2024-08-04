@@ -1,6 +1,15 @@
 const db = require("../../database");
 
 const analyzeModels = {
+  async createAnalysis(data) {
+    const result = await db.query(
+      `INSERT INTO analysis (root_cause, defect_type, action, verification)
+       VALUES ($1, $2, $3, $4) RETURNING analyze_id`,
+      [data.root_cause, data.defect_type, data.action, data.verification]
+    );
+    return result.rows[0];
+  },
+
   async getAllAnalysis() {
     try {
       const result = await db.query("SELECT * FROM analysis");

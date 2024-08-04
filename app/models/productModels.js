@@ -130,6 +130,11 @@ const productModels = {
     }
   },
 
+  async getProductByName(product_name) {
+    const result = await db.query("SELECT product_id FROM products WHERE product_name = $1", [product_name]);
+    return result.rows[0];
+  },
+
   async createProduct(product) {
     const { product_id, product_name, family_id, created_by } = product;
 

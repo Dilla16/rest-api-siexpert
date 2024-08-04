@@ -4,6 +4,7 @@ const productControllers = require("../controllers/productControllers");
 const returControllers = require("../controllers/returControllers");
 const analyzeControllers = require("../controllers/analyzeControllers");
 const authMiddleware = require("../middleware/auth");
+const historyController = require("../controllers/historyControllers");
 
 const router = express.Router();
 
@@ -41,18 +42,21 @@ router.delete("/products/:product_id", productControllers.deleteProduct);
 
 //return
 router.get("/returns", returControllers.getAllReturns);
-router.post("/returns", returControllers.createReturn);
+router.post("/returns", authMiddleware, returControllers.createReturn);
 router.get("/returns/:id", returControllers.getReturnById);
 router.put("/returns/:id", returControllers.updateReturnById);
-router.delete("/returns/:id", returControllers.deleteReturnById);
+router.delete("/returns/:id", authMiddleware, returControllers.deleteReturnById);
 
-// //analyze
+//analyze
 router.get("/analysis", analyzeControllers.getAllAnalysis);
 router.get("/analysis/:id", analyzeControllers.getAnalysisById);
 router.put("/analysis/:id", analyzeControllers.updateAnalysisById);
 router.delete("/analysis/:id", analyzeControllers.deleteAnalysisById);
 
+//history
 // // status analysis
+router.get("/history/:analyse_id", historyController.getHistoryByAnalyzeId);
+router.get("/latest-history", historyController.getLatestHistoryEntries);
 // router.post("/retur/analysis/assign", analyzeControllers.assignAnalysis);
 // router.post("/retur/analysis/save", analyzeControllers.saveAnalysis);
 // router.post("/retur/analysis/submitted", analyzeControllers.submitAnalysis);

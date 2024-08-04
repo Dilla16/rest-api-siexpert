@@ -9,7 +9,7 @@ const authMiddleware = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.userData = decoded;
+    req.userData = decoded; // Changed to userData to match the controller
     next();
   } catch (error) {
     console.error("Error verifying token:", error.message || error);
@@ -25,7 +25,7 @@ const checkTokenExpiration = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded;
+    req.userData = decoded; // Ensure consistency with userData
     next();
   } catch (error) {
     if (error.name === "TokenExpiredError") {

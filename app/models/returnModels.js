@@ -1,5 +1,17 @@
 const db = require("../../database");
 
+async function beginTransaction() {
+  await db.query("BEGIN");
+}
+
+async function commitTransaction() {
+  await db.query("COMMIT");
+}
+
+async function rollbackTransaction() {
+  await db.query("ROLLBACK");
+}
+
 const returModels = {
   async getAllReturns() {
     try {
@@ -12,42 +24,39 @@ const returModels = {
   },
 
   async checkSerialNo(serial_no) {
-    try {
-      const result = await db.query(`SELECT 1 FROM retur WHERE serial_no = $1 LIMIT 1`, [serial_no]);
-      return result.rows.length > 0;
-    } catch (error) {
-      console.error("Error in checkSerialNo:", error);
-      throw new Error("Database query failed");
-    }
+    const result = await db.query("SELECT 1 FROM retur WHERE serial_no = $1 LIMIT 1", [serial_no]);
+    return result.rows.length > 0;
   },
 
-  async createAnalysis(data) {
-    const result = await db.query(
-      `INSERT INTO analysis ( root_cause, defect_type, action,  verification)
-       VALUES ( $1, $2, $3, $4, $5, $6) RETURNING analyze_id`,
-      [data.root_cause, data.defect_type, data.action, data.status, data.created_by, data.verification]
-    );
-    return result.rows[0];
+  async getLastReturId() {
+    const result = await db.query("SELECT retur_id FROM retur ORDER BY retur_id DESC LIMIT 1");
+    return result.rows[0] ? result.rows[0].retur_id : null;
+  },
+
+  async generateNextReturId() {
+    const lastReturId = await this.getLastReturId();
+    let nextId = 1;
+
+    if (lastReturId) {
+      const lastNumber = parseInt(lastReturId.replace("RET", ""), 10);
+      nextId = lastNumber + 1;
+    }
+
+    return `RET${nextId.toString().padStart(5, "0")}`;
   },
 
   async createReturn(data) {
-    const result = await db.query(
-      `INSERT INTO retur (retur_no, customer_name, country, product_id, qty, serial_no, issue, analyse_id)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING retur_id`,
-      [data.retur_no, data.customer_name, data.country, data.product_id, data.qty, data.serial_no, data.issue, data.analyse_id]
-    );
-    return result.rows[0];
-  },
+    // Generate the next retur_id
+    const newReturId = await this.generateNextReturId();
 
-  async createHistory(historyData) {
-    const { id_analysa, status, created_by } = historyData;
+    // Insert new return record with generated retur_id
     const result = await db.query(
-      `INSERT INTO history (id_analysa, status, created_by)
-       VALUES ($1, $2, $3)
-       RETURNING *`,
-      [id_analysa, status, created_by]
+      `INSERT INTO retur (retur_id, retur_no, customer_name, country, product_id, qty, serial_no, issue, analyse_id)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING retur_id, retur_no, customer_name, country, product_id, qty, serial_no, issue`,
+      [newReturId, data.retur_no, data.customer_name, data.country, data.product_id, data.qty, data.serial_no, data.issue, data.analyse_id]
     );
-    return result.rows[0];
+
+    return result.rows[0]; // Returning the newly created return record
   },
 
   async getReturnWithDetails(id) {

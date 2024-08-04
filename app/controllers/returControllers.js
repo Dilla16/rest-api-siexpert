@@ -1,4 +1,7 @@
 const returModels = require("../models/returnModels");
+const historyModels = require("../models/historyModels");
+const productModels = require("../models/productModels");
+const analyzeModels = require("../models/analyzeModels");
 
 const ReturController = {
   async getAllReturns(req, res) {
@@ -13,19 +16,17 @@ const ReturController = {
 
   async createReturn(req, res) {
     const { returnData } = req.body;
+    const { sesa } = req.userData;
 
     console.log("Received data:", { returnData });
 
-    // Validate the returnData
     if (!returnData) {
       return res.status(400).json({ error: "Bad Request", details: "Return data is required" });
     }
 
-    // Destructure returnData and apply validation
-    const { retur_no, customer_name, country, product_id, qty, serial_no, issue } = returnData;
+    const { retur_no, customer_name, country, product_name, qty, serial_no, issue } = returnData;
 
-    // Check for required fields
-    if (!retur_no || !customer_name || !country || !product_id || !qty || !serial_no || !issue) {
+    if (!retur_no || !customer_name || !country || !product_name || !qty || !serial_no || !issue) {
       return res.status(400).json({ error: "Bad Request", details: "All fields are required" });
     }
 
@@ -35,10 +36,15 @@ const ReturController = {
     }
 
     try {
-      // Begin transaction
       await returModels.beginTransaction();
 
-      // Check for duplicate serial_no
+      const product = await productModels.getProductByName(product_name);
+      if (!product) {
+        await returModels.rollbackTransaction();
+        return res.status(404).json({ error: "Not Found", details: "Product not found" });
+      }
+      const product_id = product.product_id;
+
       const existingReturn = await returModels.checkSerialNo(serial_no);
       if (existingReturn) {
         await returModels.rollbackTransaction();
@@ -50,11 +56,9 @@ const ReturController = {
         root_cause: null,
         defect_type: null,
         action: null,
-        status: "created",
       };
 
-      // Create analysis
-      const newAnalysis = await returModels.createAnalysis(analysisData);
+      const newAnalysis = await analyzeModels.createAnalysis(analysisData);
       console.log("New analysis created:", newAnalysis);
 
       const newReturn = await returModels.createReturn({
@@ -69,10 +73,38 @@ const ReturController = {
       });
       console.log("New return created:", newReturn);
 
-      // Commit transaction
+      await historyModels.createHistory({
+        analyse_id: newAnalysis.analyze_id,
+        status: "created",
+        created_by: sesa,
+        created_at: new Date(),
+      });
+
       await returModels.commitTransaction();
 
-      res.status(201).json({ return: newReturn, analysis: newAnalysis });
+      const extendedAnalysis = await analyzeModels.getAnalysisById(newAnalysis.analyze_id);
+
+      const responseData = {
+        returnData: {
+          retur_id: newReturn.retur_id,
+          retur_no: newReturn.retur_no,
+          customer_name: newReturn.customer_name,
+          country: newReturn.country,
+          product_name: product.product_name,
+          qty: newReturn.qty,
+          serial_no: newReturn.serial_no,
+          issue: newReturn.issue,
+          analysis: {
+            analyze_id: extendedAnalysis.analyze_id,
+            root_cause: extendedAnalysis.root_cause,
+            defect_type: extendedAnalysis.defect_type,
+            action: extendedAnalysis.action,
+            verification: extendedAnalysis.verification,
+          },
+        },
+      };
+
+      res.status(201).json(responseData);
     } catch (error) {
       console.error("Error in createReturn:", error);
       // Rollback transaction in case of error
@@ -111,40 +143,34 @@ const ReturController = {
 
   async deleteReturnById(req, res) {
     const { id } = req.params;
-
+    const { sesa } = req.userData;
     try {
-      // Begin transaction
-      await returModels.beginTransaction();
+      await db.query("BEGIN");
 
-      // Get the return to find associated analysis ID
-      const returnData = await returModels.getReturnById(id);
-      if (!returnData) {
-        await returModels.rollbackTransaction();
-        return res.status(404).json({ message: "Return not found" });
+      // Check if the retur exists
+      const result = await db.query("SELECT * FROM retur WHERE retur_id = $1", [id]);
+      if (result.rows.length === 0) {
+        await db.query("ROLLBACK");
+        return res.status(404).json({ error: "Not Found", details: "Return record not found" });
       }
 
-      const { analyse_id } = returnData;
+      const retur = result.rows[0];
 
-      // Delete the associated analysis if exists
-      if (analyse_id) {
-        await returModels.deleteAnalysisById(analyse_id);
-      }
+      // Delete the retur record
+      await db.query("DELETE FROM retur WHERE retur_id = $1", [id]);
 
-      // Delete the return
-      const deletedReturn = await returModels.deleteReturnById(id);
+      // Insert a history record with status 'deleted'
+      await db.query(
+        `INSERT INTO history (analyse_id, created_at, status, created_by) 
+       VALUES ($1, $2, $3, $4)`,
+        [retur.analyse_id, new Date(), "deleted", sesa]
+      );
 
-      // Commit transaction
-      await returModels.commitTransaction();
-
-      if (deletedReturn) {
-        res.status(200).json(deletedReturn);
-      } else {
-        res.status(404).json({ message: "Return not found" });
-      }
+      await db.query("COMMIT");
+      res.status(200).json({ message: "Return deleted successfully" });
     } catch (error) {
-      console.error("Error in deleteReturnById:", error);
-      // Rollback transaction in case of error
-      await returModels.rollbackTransaction();
+      await db.query("ROLLBACK");
+      console.error("Error deleting return:", error);
       res.status(500).json({ error: "Internal Server Error", details: error.message });
     }
   },
