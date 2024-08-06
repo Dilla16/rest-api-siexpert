@@ -3,9 +3,9 @@ const db = require("../../database");
 const analyzeModels = {
   async createAnalysis(data) {
     const result = await db.query(
-      `INSERT INTO analysis (root_cause, defect_type, action, verification)
-       VALUES ($1, $2, $3, $4) RETURNING analyze_id`,
-      [data.root_cause, data.defect_type, data.action, data.verification]
+      `INSERT INTO analysis (root_cause, defect_type, action, verification, status, created_by)
+       VALUES ($1, $2, $3, $4, $5, $6) RETURNING analyze_id`,
+      [data.root_cause, data.defect_type, data.action, data.verification, "created", data.created_by]
     );
     return result.rows[0];
   },
@@ -15,7 +15,7 @@ const analyzeModels = {
       const result = await db.query("SELECT * FROM analysis");
       return result.rows;
     } catch (error) {
-      console.error("Error in getAllAnalyses:", error);
+      console.error("Error in getAllAnalysis:", error);
       throw new Error("Database query failed");
     }
   },
@@ -36,7 +36,10 @@ const analyzeModels = {
     try {
       const result = await db.query(
         `UPDATE analysis
-         SET verification = $1, root_cause = $2, defect_type = $3, action = $4
+         SET verification = COALESCE($1, verification), 
+             root_cause = COALESCE($2, root_cause), 
+             defect_type = COALESCE($3, defect_type), 
+             action = COALESCE($4, action)
          WHERE analyze_id = $5 RETURNING *`,
         [verification, root_cause, defect_type, action, id]
       );
@@ -60,10 +63,10 @@ const analyzeModels = {
   async updateAnalysisStatus(analyze_id, created_by, status) {
     try {
       const result = await db.query(
-        `UPDATE analyze
-         SET created_by = $1, status = $2
+        `UPDATE analysis
+         SET status = $1, created_by = $2
          WHERE analyze_id = $3 RETURNING *`,
-        [created_by, status, analyze_id]
+        [status, created_by, analyze_id]
       );
       return result.rows[0];
     } catch (error) {
@@ -75,7 +78,7 @@ const analyzeModels = {
   async saveAnalysis(analyze_id, verification, root_cause, defect_type, action) {
     try {
       const result = await db.query(
-        `UPDATE analyze
+        `UPDATE analysis
          SET verification = COALESCE($2, verification), 
              root_cause = COALESCE($3, root_cause), 
              defect_type = COALESCE($4, defect_type), 

@@ -15,8 +15,73 @@ async function rollbackTransaction() {
 const returModels = {
   async getAllReturns() {
     try {
-      const result = await db.query("SELECT * FROM retur");
-      return result.rows;
+      const result = await db.query(`
+        SELECT 
+          r.retur_id,
+          r.retur_no,
+          r.customer_name,
+          r.country,
+          r.qty,
+          r.serial_no,
+          r.issue,
+          r.product_id AS return_product_id,
+          rp.product_name AS return_product_name,
+          p.product_id,
+          p.product_name,
+          f.family_name,
+          s.sector_name,
+          r.analyse_id,
+          a.analyze_id AS analysis_id,
+          a.root_cause,
+          a.defect_type,
+          a.action,
+          a.verification
+        FROM 
+          retur r
+        JOIN 
+          products rp ON r.product_id = rp.product_id
+        JOIN 
+          products p ON r.product_id = p.product_id
+        JOIN 
+          families f ON p.family_id = f.family_id
+        JOIN 
+          sectors s ON f.sector_id = s.sector_id
+        LEFT JOIN 
+          analysis a ON r.analyse_id = a.analyze_id
+      `);
+
+      // Transform the result to the desired format
+      const formattedResult = result.rows.map((row) => ({
+        returnData: {
+          retur_id: row.retur_id,
+          retur_no: row.retur_no,
+          customer_name: row.customer_name,
+          country: row.country,
+          product_name: row.return_product_name,
+          qty: row.qty,
+          serial_no: row.serial_no,
+          issue: row.issue,
+          products: {
+            product_id: row.product_id,
+            product_name: row.product_name,
+            families: {
+              family_name: row.family_name,
+              sectors: {
+                sector_name: row.sector_name,
+              },
+            },
+          },
+          analysis: {
+            analyze_id: row.analysis_id,
+            root_cause: row.root_cause,
+            defect_type: row.defect_type,
+            action: row.action,
+            verification: row.verification,
+          },
+        },
+      }));
+
+      return formattedResult;
     } catch (error) {
       console.error("Error in getAllReturns:", error);
       throw new Error("Database query failed");
@@ -61,17 +126,19 @@ const returModels = {
 
   async getReturnWithDetails(id) {
     try {
-      // Fetch return data along with associated product, family, and sector
+      // Fetch return data along with associated product, family, sector, and analysis details
       const result = await db.query(
         `
         SELECT r.retur_id, r.retur_no, r.customer_name, r.country, r.qty, r.serial_no, r.issue, r.analyse_id,
                p.product_id, p.product_name,
                f.family_name,
-               s.sector_name
+               s.sector_name,
+               a.analyze_id AS analysis_id, a.root_cause, a.defect_type, a.action, a.verification
         FROM retur r
         JOIN products p ON r.product_id = p.product_id
         LEFT JOIN families f ON p.family_id = f.family_id
         LEFT JOIN sectors s ON f.sector_id = s.sector_id
+        LEFT JOIN analysis a ON r.analyse_id = a.analyze_id
         WHERE r.retur_id = $1
       `,
         [id]
@@ -82,18 +149,6 @@ const returModels = {
       }
 
       const returnData = result.rows[0];
-
-      // Fetch analysis data
-      const analysisResult = await db.query(
-        `
-        SELECT analyze_id, root_cause, defect_type, action, verification
-        FROM analyze
-        WHERE analyze_id = $1
-      `,
-        [returnData.analyse_id]
-      );
-
-      const analysisData = analysisResult.rows[0];
 
       // Build the response object
       return {
@@ -114,7 +169,13 @@ const returModels = {
         qty: returnData.qty,
         serial_no: returnData.serial_no,
         issue: returnData.issue,
-        analysis: analysisData,
+        analysis: {
+          analyze_id: returnData.analysis_id,
+          root_cause: returnData.root_cause,
+          defect_type: returnData.defect_type,
+          action: returnData.action,
+          verification: returnData.verification,
+        },
       };
     } catch (error) {
       console.error("Error in getReturnWithDetails:", error);
@@ -229,33 +290,6 @@ const returModels = {
         verification: returnData.verification,
       },
     };
-  },
-
-  async beginTransaction() {
-    try {
-      await db.query("BEGIN");
-    } catch (error) {
-      console.error("Error in beginTransaction:", error);
-      throw new Error("Failed to begin transaction");
-    }
-  },
-
-  async commitTransaction() {
-    try {
-      await db.query("COMMIT");
-    } catch (error) {
-      console.error("Error in commitTransaction:", error);
-      throw new Error("Failed to commit transaction");
-    }
-  },
-
-  async rollbackTransaction() {
-    try {
-      await db.query("ROLLBACK");
-    } catch (error) {
-      console.error("Error in rollbackTransaction:", error);
-      throw new Error("Failed to rollback transaction");
-    }
   },
 };
 
