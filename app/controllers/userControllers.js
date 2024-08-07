@@ -9,7 +9,7 @@ const UserController = {
 
     // Check if all required fields are provided and if department is an array
     if (!sesa || !name || !email || !password || !role || !Array.isArray(department) || department.length === 0) {
-      return res.status(400).json({ error: "All fields are required and department must be a non-empty array" });
+      return res.status(400).json({ error: "All fields are required!" });
     }
 
     try {
@@ -24,7 +24,7 @@ const UserController = {
       }
 
       if (error.code === "23505") {
-        return res.status(409).json({ error: "User already exists." });
+        return res.status(409).json({ status: "FAILED", message: "User already exists." });
       }
 
       res.status(500).json({ error: "Internal Server Error", details: error.message });
