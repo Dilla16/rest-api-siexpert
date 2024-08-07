@@ -27,6 +27,12 @@ const productControllers = {
 
   async createSector(req, res) {
     try {
+      const { sector_name } = req.body;
+
+      if (!sector_name) {
+        return res.status(400).json({ status: "FAILED", message: "Data sectors must fill out!" });
+      }
+
       const sector = await productModels.createSectors(req.body);
       res.status(201).json(sector);
     } catch (error) {
@@ -96,6 +102,12 @@ const productControllers = {
 
   async createFamily(req, res) {
     try {
+      const { family_name } = req.body;
+
+      if (!family_name) {
+        return res.status(400).json({ status: "FAILED", message: "Data family must fill out!" });
+      }
+
       const family = await productModels.createFamilies(req.body);
       res.status(201).json(family);
     } catch (error) {
@@ -181,13 +193,13 @@ const productControllers = {
   async createProduct(req, res) {
     try {
       const { product_id, product_name, family_id } = req.body;
-      const created_by = req.user.sesa;
+      const { sesa } = req.userData;
 
       const productData = {
         product_id,
         product_name,
         family_id,
-        created_by,
+        created_by: sesa,
       };
 
       const product = await productModels.createProduct(productData);
@@ -197,6 +209,7 @@ const productControllers = {
       res.status(500).json({ error: error.message });
     }
   },
+
   async updateProduct(req, res) {
     try {
       const { product_id } = req.params;
