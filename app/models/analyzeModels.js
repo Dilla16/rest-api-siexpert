@@ -2,12 +2,19 @@ const db = require("../../database");
 
 const analyzeModels = {
   async createAnalysis(data) {
-    const result = await db.query(
-      `INSERT INTO analysis (root_cause, defect_type, action, verification, status, created_by)
-       VALUES ($1, $2, $3, $4, $5, $6) RETURNING analyze_id`,
-      [data.root_cause, data.defect_type, data.action, data.verification, "created", data.created_by]
-    );
-    return result.rows[0];
+    const { analyze_id, root_cause, defect_type, action, verification } = data;
+
+    try {
+      const result = await db.query(
+        `INSERT INTO analysis (analyze_id, root_cause, defect_type, action, verification)
+         VALUES ($1, $2, $3, $4, $5) RETURNING analyze_id`,
+        [analyze_id, root_cause, defect_type, action, verification]
+      );
+      return result.rows[0];
+    } catch (error) {
+      console.error("Error in createAnalysis:", error);
+      throw new Error("Database query failed");
+    }
   },
 
   async getAllAnalysis() {
@@ -28,6 +35,11 @@ const analyzeModels = {
       console.error("Error in getAnalysisById:", error);
       throw new Error("Database query failed");
     }
+  },
+
+  async getLastAnalyzeId() {
+    const result = await db.query("SELECT analyze_id FROM analysis ORDER BY analyze_id DESC LIMIT 1");
+    return result.rows[0] ? result.rows[0].analyze_id : null;
   },
 
   async updateAnalysisById(id, analysisData) {

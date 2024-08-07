@@ -18,8 +18,6 @@ const ReturController = {
     const { returnData } = req.body;
     const { sesa } = req.userData;
 
-    console.log("Received data:", { returnData });
-
     if (!returnData) {
       return res.status(400).json({ error: "Bad Request", details: "Return data is required" });
     }
@@ -30,7 +28,6 @@ const ReturController = {
       return res.status(400).json({ error: "Bad Request", details: "All fields are required" });
     }
 
-    // Ensure field lengths are within limits
     if (retur_no.length > 100 || customer_name.length > 100 || country.length > 100 || serial_no.length > 100) {
       return res.status(400).json({ error: "Bad Request", details: "Field length exceeds allowed limit" });
     }
@@ -51,13 +48,23 @@ const ReturController = {
         return res.status(400).json({ error: "Error", details: "Serial No. Already Exist" });
       }
 
+      // Generate next analyze_id
+      const lastAnalyzeId = await analyzeModels.getLastAnalyzeId();
+      let nextId = 1;
+      if (lastAnalyzeId) {
+        const lastNumber = parseInt(lastAnalyzeId.replace("AN", ""), 10);
+        nextId = lastNumber + 1;
+      }
+      const newAnalyseId = `AN${nextId.toString().padStart(6, "0")}`;
+
+      // Create analysis with generated analyze_id
       const analysisData = {
+        analyze_id: newAnalyseId,
         verification: null,
         root_cause: null,
         defect_type: null,
         action: null,
       };
-
       const newAnalysis = await analyzeModels.createAnalysis(analysisData);
       console.log("New analysis created:", newAnalysis);
 
@@ -69,12 +76,12 @@ const ReturController = {
         qty,
         serial_no,
         issue,
-        analyse_id: newAnalysis.analyze_id,
+        analyse_id: newAnalyseId, // Ensure to pass the correct analyze_id here
       });
       console.log("New return created:", newReturn);
 
       await historyModels.createHistory({
-        analyse_id: newAnalysis.analyze_id,
+        analyse_id: newAnalyseId,
         status: "created",
         created_by: sesa,
         created_at: new Date(),
@@ -82,7 +89,7 @@ const ReturController = {
 
       await returModels.commitTransaction();
 
-      const extendedAnalysis = await analyzeModels.getAnalysisById(newAnalysis.analyze_id);
+      const extendedAnalysis = await analyzeModels.getAnalysisById(newAnalyseId);
 
       const responseData = {
         returnData: {
