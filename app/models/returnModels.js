@@ -322,42 +322,47 @@ const returModels = {
     await rollbackTransaction();
   },
 
-  async getAllReturns() {
+  async getReturnsByDepartments(departments) {
+    const query = `
+      SELECT 
+        r.retur_id,
+        r.retur_no,
+        r.customer_name,
+        r.country,
+        r.qty,
+        r.serial_no,
+        r.issue,
+        r.product_id AS return_product_id,
+        rp.product_name AS return_product_name,
+        p.product_id,
+        p.product_name,
+        f.family_name,
+        s.sector_name,
+        r.analyse_id,
+        a.analyze_id AS analysis_id,
+        a.root_cause,
+        a.defect_type,
+        a.action,
+        a.verification
+      FROM 
+        retur r
+      JOIN 
+        products rp ON r.product_id = rp.product_id
+      JOIN 
+        products p ON r.product_id = p.product_id
+      JOIN 
+        families f ON p.family_id = f.family_id
+      JOIN 
+        sectors s ON f.sector_id = s.sector_id
+      LEFT JOIN 
+        analysis a ON r.analyse_id = a.analyze_id
+      WHERE 
+        s.sector_name = ANY($1::text[])
+    `;
+
     try {
-      const result = await db.query(`
-        SELECT 
-          r.retur_id,
-          r.retur_no,
-          r.customer_name,
-          r.country,
-          r.qty,
-          r.serial_no,
-          r.issue,
-          r.product_id AS return_product_id,
-          rp.product_name AS return_product_name,
-          p.product_id,
-          p.product_name,
-          f.family_name,
-          s.sector_name,
-          r.analyse_id,
-          a.analyze_id AS analysis_id,
-          a.root_cause,
-          a.defect_type,
-          a.action,
-          a.verification
-        FROM 
-          retur r
-        JOIN 
-          products rp ON r.product_id = rp.product_id
-        JOIN 
-          products p ON r.product_id = p.product_id
-        JOIN 
-          families f ON p.family_id = f.family_id
-        JOIN 
-          sectors s ON f.sector_id = s.sector_id
-        LEFT JOIN 
-          analysis a ON r.analyse_id = a.analyze_id
-      `);
+      // Ensure departments is an array
+      const result = await db.query(query, [departments]);
 
       // Transform the result to the desired format
       const formattedResult = result.rows.map((row) => ({
@@ -392,10 +397,88 @@ const returModels = {
 
       return formattedResult;
     } catch (error) {
-      console.error("Error in getAllReturns:", error);
+      console.error("Error in getReturnsByDepartments:", error.message || error);
       throw new Error("Database query failed");
     }
   },
+  // async getReturnsBySectors(sectors) {
+  //   const query = `
+  //     SELECT
+  //       r.retur_id,
+  //       r.retur_no,
+  //       r.customer_name,
+  //       r.country,
+  //       r.qty,
+  //       r.serial_no,
+  //       r.issue,
+  //       r.product_id AS return_product_id,
+  //       rp.product_name AS return_product_name,
+  //       p.product_id,
+  //       p.product_name,
+  //       f.family_name,
+  //       s.sector_name,
+  //       r.analyse_id,
+  //       a.analyze_id AS analysis_id,
+  //       a.root_cause,
+  //       a.defect_type,
+  //       a.action,
+  //       a.verification
+  //     FROM
+  //       retur r
+  //     JOIN
+  //       products rp ON r.product_id = rp.product_id
+  //     JOIN
+  //       products p ON r.product_id = p.product_id
+  //     JOIN
+  //       families f ON p.family_id = f.family_id
+  //     JOIN
+  //       sectors s ON f.sector_id = s.sector_id
+  //     LEFT JOIN
+  //       analysis a ON r.analyse_id = a.analyze_id
+  //     WHERE
+  //       s.sector_name = ANY($1::text[])
+  //   `;
+  //   const values = [sectors];
+  //   try {
+  //     const result = await db.query(query, values);
+
+  //     // Transform the result to the desired format
+  //     const formattedResult = result.rows.map((row) => ({
+  //       returnData: {
+  //         retur_id: row.retur_id,
+  //         retur_no: row.retur_no,
+  //         customer_name: row.customer_name,
+  //         country: row.country,
+  //         product_name: row.return_product_name,
+  //         qty: row.qty,
+  //         serial_no: row.serial_no,
+  //         issue: row.issue,
+  //         products: {
+  //           product_id: row.product_id,
+  //           product_name: row.product_name,
+  //           families: {
+  //             family_name: row.family_name,
+  //             sectors: {
+  //               sector_name: row.sector_name,
+  //             },
+  //           },
+  //         },
+  //         analysis: {
+  //           analyze_id: row.analysis_id,
+  //           root_cause: row.root_cause,
+  //           defect_type: row.defect_type,
+  //           action: row.action,
+  //           verification: row.verification,
+  //         },
+  //       },
+  //     }));
+
+  //     return formattedResult;
+  //   } catch (error) {
+  //     console.error("Error in getReturnsBySectors:", error);
+  //     throw new Error("Database query failed");
+  //   }
+  // },
 
   async checkSerialNo(serial_no) {
     const result = await db.query("SELECT 1 FROM retur WHERE serial_no = $1 LIMIT 1", [serial_no]);

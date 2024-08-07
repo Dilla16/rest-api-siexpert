@@ -41,7 +41,7 @@ router.get("/products/family/:family_id", productControllers.getProductsByFamily
 router.delete("/products/:product_id", productControllers.deleteProduct);
 
 //return
-router.get("/returns", returControllers.getAllReturns);
+router.get("/returns", authMiddleware, returControllers.getAllReturns);
 router.post("/returns", authMiddleware, returControllers.createReturn);
 router.get("/returns/:id", returControllers.getReturnById);
 router.put("/returns/:id", returControllers.updateReturnById);

@@ -59,6 +59,33 @@ const UserModel = {
 
     return user;
   },
+
+  async getDepartmentBySesa(sesa) {
+    const query = "SELECT department FROM users WHERE sesa = $1";
+    const values = [sesa];
+    try {
+      const result = await db.query(query, values);
+
+      if (!result.rows.length || !result.rows[0].department) {
+        throw new Error("User department not found");
+      }
+
+      // Check if department is a string or array and handle accordingly
+      let department = result.rows[0].department;
+
+      if (typeof department === "string") {
+        // Handle string department and convert to array
+        department = department.split(",").map((dept) => dept.trim());
+      } else if (!Array.isArray(department)) {
+        throw new Error("Invalid department format");
+      }
+
+      return department;
+    } catch (error) {
+      console.error("Error in getDepartmentBySesa:", error.message || error);
+      throw new Error("Database query failed");
+    }
+  },
 };
 
 module.exports = UserModel;
