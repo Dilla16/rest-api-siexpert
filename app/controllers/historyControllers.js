@@ -54,6 +54,22 @@ const historyController = {
       res.status(500).json({ error: "Internal Server Error", details: error.message });
     }
   },
+
+  async assignHistory(req, res) {
+    const { analyze_id } = req.body;
+    const { sesa } = req.userData;
+
+    if (!analyze_id) {
+      return res.status(400).json({ error: "Bad Request", details: "Analyze ID is required" });
+    }
+
+    try {
+      const result = await historyModels.createHistoryAssign(analyze_id, sesa, "signed");
+      res.status(200).json(result);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  },
 };
 
 module.exports = historyController;

@@ -190,7 +190,7 @@ const analyzeControllers = {
     }
 
     try {
-      const result = await analyzeModels.updateAnalysisStatus(analyze_id, sesa, "signed");
+      const result = await analyzeModels.createHistoryAssign(analyze_id, sesa, "signed");
       res.status(200).json(result);
     } catch (error) {
       res.status(500).json({ error: error.message });
