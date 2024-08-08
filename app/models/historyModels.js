@@ -2,12 +2,17 @@ const db = require("../../database");
 
 const historyModels = {
   async createHistory(data) {
-    const result = await db.query(
-      `INSERT INTO history (analyse_id, status, created_at, created_by)
-           VALUES ($1, $2, $3, $4) RETURNING history_id`,
-      [data.analyse_id, data.status, data.created_at, data.created_by]
-    );
-    return result.rows[0];
+    try {
+      const result = await db.query(
+        `INSERT INTO history (analyse_id, status, created_at, created_by)
+         VALUES ($1, $2, $3, $4) RETURNING history_id`,
+        [data.analyse_id, data.status, data.created_at, data.created_by]
+      );
+      return result.rows[0];
+    } catch (error) {
+      console.error("Error in createHistory:", error);
+      throw new Error("Database query failed");
+    }
   },
 
   async getHistoryByAnalyseId(analyse_id) {
@@ -30,8 +35,8 @@ const historyModels = {
     try {
       const result = await db.query(
         `SELECT history_id, analyse_id, status, created_at, created_by
-           FROM history
-           WHERE history_id = $1`,
+         FROM history
+         WHERE history_id = $1`,
         [history_id]
       );
       return result.rows[0];
@@ -43,7 +48,7 @@ const historyModels = {
 
   async createHistoryAssign(analyze_id, created_by, status) {
     try {
-      await client.query("BEGIN");
+      await db.query("BEGIN");
 
       const historyResult = await db.query(
         `INSERT INTO history (analyse_id, created_at, status, created_by)
@@ -51,18 +56,15 @@ const historyModels = {
         [analyze_id, status, created_by]
       );
 
-      await client.query("COMMIT");
+      await db.query("COMMIT");
 
       return {
-        updateResult: updateResult.rows[0],
         historyResult: historyResult.rows[0],
       };
     } catch (error) {
-      await client.query("ROLLBACK");
+      await db.query("ROLLBACK");
       console.error("Error in createHistoryAssign:", error);
       throw new Error("Database query failed");
-    } finally {
-      client.release();
     }
   },
 };
