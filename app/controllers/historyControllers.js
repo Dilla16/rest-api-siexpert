@@ -29,21 +29,32 @@ const historyController = {
         return res.status(200).json(mostRecentHistory);
       }
 
-      // Create an object to store the most recent record for each status
+      // Create an object to store the most relevant record for each status
       const mostRecentHistory = {};
       statuses.forEach((status) => {
         mostRecentHistory[status] = {};
       });
 
-      for (const status of statuses) {
-        const recordsForStatus = historyData.filter((record) => record.status === status);
+      // Separate records for 'created' and other statuses
+      const createdRecords = historyData.filter((record) => record.status === "created");
+      const otherRecords = historyData.filter((record) => record.status !== "created");
+
+      // Find the oldest record for the 'created' status
+      if (createdRecords.length > 0) {
+        const oldestRecord = createdRecords.reduce((oldest, record) => {
+          return new Date(record.created_at) < new Date(oldest.created_at) ? record : oldest;
+        });
+        mostRecentHistory["created"] = oldestRecord;
+      }
+
+      // Find the most recent record for all other statuses
+      for (const status of statuses.filter((status) => status !== "created")) {
+        const recordsForStatus = otherRecords.filter((record) => record.status === status);
 
         if (recordsForStatus.length > 0) {
-          // Find the most recent record for this status
           const latestRecord = recordsForStatus.reduce((latest, record) => {
             return new Date(record.created_at) > new Date(latest.created_at) ? record : latest;
           });
-
           mostRecentHistory[status] = latestRecord;
         }
       }
@@ -54,7 +65,6 @@ const historyController = {
       res.status(500).json({ error: "Internal Server Error", details: error.message });
     }
   },
-
   async assignHistory(req, res) {
     const { analyze_id } = req.body;
     const { sesa } = req.userData;
