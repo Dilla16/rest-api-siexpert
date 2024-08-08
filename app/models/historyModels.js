@@ -42,11 +42,10 @@ const historyModels = {
   },
 
   async createHistoryAssign(analyze_id, created_by, status) {
-    const client = await db.connect();
     try {
       await client.query("BEGIN");
 
-      const historyResult = await client.query(
+      const historyResult = await db.query(
         `INSERT INTO history (analyse_id, created_at, status, created_by)
          VALUES ($1, NOW(), $2, $3) RETURNING *`,
         [analyze_id, status, created_by]
