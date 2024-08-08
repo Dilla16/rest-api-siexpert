@@ -40,6 +40,32 @@ const historyModels = {
       throw new Error("Database query failed");
     }
   },
+
+  async createHistoryAssign(analyze_id, created_by, status) {
+    const client = await db.connect();
+    try {
+      await client.query("BEGIN");
+
+      const historyResult = await client.query(
+        `INSERT INTO history (analyse_id, created_at, status, created_by)
+         VALUES ($1, NOW(), $2, $3) RETURNING *`,
+        [analyze_id, status, created_by]
+      );
+
+      await client.query("COMMIT");
+
+      return {
+        updateResult: updateResult.rows[0],
+        historyResult: historyResult.rows[0],
+      };
+    } catch (error) {
+      await client.query("ROLLBACK");
+      console.error("Error in createHistoryAssign:", error);
+      throw new Error("Database query failed");
+    } finally {
+      client.release();
+    }
+  },
 };
 
 module.exports = historyModels;

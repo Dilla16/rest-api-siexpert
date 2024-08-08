@@ -72,21 +72,6 @@ const analyzeModels = {
     }
   },
 
-  async updateAnalysisStatus(analyze_id, created_by, status) {
-    try {
-      const result = await db.query(
-        `UPDATE analysis
-         SET status = $1, created_by = $2
-         WHERE analyze_id = $3 RETURNING *`,
-        [status, created_by, analyze_id]
-      );
-      return result.rows[0];
-    } catch (error) {
-      console.error("Error in updateAnalysisStatus:", error);
-      throw new Error("Database query failed");
-    }
-  },
-
   async saveAnalysis(analyze_id, verification, root_cause, defect_type, action) {
     try {
       const result = await db.query(
