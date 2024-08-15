@@ -81,14 +81,11 @@ const historyController = {
     }
   },
   async checkSignedStatus(req, res) {
-    const { analyze_id } = req.params; // Correctly retrieve URL parameter
+    const { analyze_id } = req; // Get analyze_id from the request object
     const { sesa } = req.userData;
 
-    if (!analyze_id) {
-      return res.status(400).json({ error: "Bad Request", details: "Analyze ID is required" });
-    }
-
     try {
+      // Check the signed status using analyze_id
       const historyData = await historyModels.getHistoryByAnalyseId(analyze_id);
 
       if (!historyData || historyData.length === 0) {
