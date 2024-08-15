@@ -15,18 +15,17 @@ const historyModels = {
     }
   },
 
-  async getHistoryByAnalyseId(analyse_id) {
+  async getHistoryById(history_id) {
     try {
       const result = await db.query(
         `SELECT history_id, analyse_id, status, created_at, created_by
          FROM history
-         WHERE analyse_id = $1
-         ORDER BY created_at DESC`,
-        [analyse_id]
+         WHERE history_id = $1`,
+        [history_id]
       );
-      return result.rows;
+      return result.rows[0];
     } catch (error) {
-      console.error("Error in getHistoryByAnalyseId:", error);
+      console.error("Error in getHistoryById:", error);
       throw new Error("Database query failed");
     }
   },
@@ -64,6 +63,21 @@ const historyModels = {
     } catch (error) {
       await db.query("ROLLBACK");
       console.error("Error in createHistoryAssign:", error);
+      throw new Error("Database query failed");
+    }
+  },
+  async getHistoryByAnalyseId(analyse_id) {
+    try {
+      const result = await db.query(
+        `SELECT history_id, analyse_id, status, created_at, created_by
+         FROM history
+         WHERE analyse_id = $1
+         ORDER BY created_at DESC`,
+        [analyse_id]
+      );
+      return result.rows;
+    } catch (error) {
+      console.error("Error in getHistoryByAnalyseId:", error);
       throw new Error("Database query failed");
     }
   },

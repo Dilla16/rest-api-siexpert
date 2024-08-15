@@ -80,6 +80,35 @@ const historyController = {
       res.status(500).json({ error: error.message });
     }
   },
+  async checkSignedStatus(req, res) {
+    const { analyze_id } = req.params; // Correctly retrieve URL parameter
+    const { sesa } = req.userData;
+
+    if (!analyze_id) {
+      return res.status(400).json({ error: "Bad Request", details: "Analyze ID is required" });
+    }
+
+    try {
+      const historyData = await historyModels.getHistoryByAnalyseId(analyze_id);
+
+      if (!historyData || historyData.length === 0) {
+        return res.status(200).json({ canEdit: false });
+      }
+
+      const signedRecord = historyData.find((record) => record.status === "signed");
+
+      if (!signedRecord) {
+        return res.status(200).json({ canEdit: false });
+      }
+
+      const isAuthorized = signedRecord.created_by === sesa;
+
+      res.status(200).json({ canEdit: isAuthorized });
+    } catch (error) {
+      console.error("Error in checkSignedStatus:", error);
+      res.status(500).json({ error: "Internal Server Error", details: error.message });
+    }
+  },
 };
 
 module.exports = historyController;

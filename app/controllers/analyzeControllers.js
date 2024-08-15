@@ -1,4 +1,5 @@
 const analyzeModels = require("../models/analyzeModels");
+const historyModels = require("../models/historyModels");
 
 // const analyzeControllers = {
 //   async getAllAnalysis(req, res) {
@@ -197,7 +198,7 @@ const analyzeControllers = {
     }
   },
 
-  // Save an analysis (equivalent to 'completed' or 'saved')
+  // Save an analysis (equivalent to 'completed')
   async saveAnalysis(req, res) {
     const { analyze_id, verification, root_cause, defect_type, action } = req.body;
     const { sesa } = req.userData;
@@ -208,8 +209,7 @@ const analyzeControllers = {
 
     try {
       const result = await analyzeModels.saveAnalysis(analyze_id, verification, root_cause, defect_type, action);
-      // Update status to "completed"
-      await analyzeModels.updateAnalysisStatus(analyze_id, sesa, "completed");
+      await historyModels.createHistory(analyze_id, sesa, "completed");
       res.status(200).json(result);
     } catch (error) {
       res.status(500).json({ error: error.message });
