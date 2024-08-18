@@ -164,32 +164,16 @@ const ReturController = {
   async deleteReturnById(req, res) {
     const { id } = req.params;
     const { sesa } = req.userData;
-    try {
-      await db.query("BEGIN");
 
-      // Check if the retur exists
-      const result = await db.query("SELECT * FROM retur WHERE retur_id = $1", [id]);
-      if (result.rows.length === 0) {
-        await db.query("ROLLBACK");
+    try {
+      const retur = await returModels.deleteReturnTransaction(id, sesa);
+
+      if (!retur) {
         return res.status(404).json({ error: "Not Found", details: "Return record not found" });
       }
 
-      const retur = result.rows[0];
-
-      // Delete the retur record
-      await db.query("DELETE FROM retur WHERE retur_id = $1", [id]);
-
-      // Insert a history record with status 'deleted'
-      await db.query(
-        `INSERT INTO history (analyse_id, created_at, status, created_by) 
-       VALUES ($1, $2, $3, $4)`,
-        [retur.analyse_id, new Date(), "deleted", sesa]
-      );
-
-      await db.query("COMMIT");
       res.status(200).json({ message: "Return deleted successfully" });
     } catch (error) {
-      await db.query("ROLLBACK");
       console.error("Error deleting return:", error);
       res.status(500).json({ error: "Internal Server Error", details: error.message });
     }

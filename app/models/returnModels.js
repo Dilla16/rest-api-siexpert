@@ -592,13 +592,35 @@ const returModels = {
     }
   },
 
-  async deleteReturnById(id) {
+  async deleteReturnTransaction(id, sesa) {
     try {
-      const result = await db.query("DELETE FROM retur WHERE retur_id = $1 RETURNING *", [id]);
-      return result.rows[0];
+      await db.query("BEGIN");
+
+      // Check if the retur exists
+      const result = await db.query("SELECT * FROM retur WHERE retur_id = $1", [id]);
+      if (result.rows.length === 0) {
+        await db.query("ROLLBACK");
+        return null; // Indicates not found
+      }
+
+      const retur = result.rows[0];
+
+      // Delete the retur record
+      await db.query("DELETE FROM retur WHERE retur_id = $1", [id]);
+
+      // Insert a history record with status 'deleted'
+      await db.query(
+        `INSERT INTO history (analyse_id, created_at, status, created_by) 
+         VALUES ($1, $2, $3, $4)`,
+        [retur.analyse_id, new Date(), "deleted", sesa]
+      );
+
+      await db.query("COMMIT");
+      return retur;
     } catch (error) {
-      console.error("Error in deleteReturnById:", error);
-      throw new Error("Database query failed");
+      await db.query("ROLLBACK");
+      console.error("Error in deleteReturnTransaction:", error);
+      throw new Error("Database transaction failed");
     }
   },
 
