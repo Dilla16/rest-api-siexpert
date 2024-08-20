@@ -84,29 +84,36 @@ const historyController = {
     const { sesa } = req.userData;
 
     try {
-      const returnData = await returnModels.getReturnById(req.params.id); // Assuming returnModels.getReturnById exists
+      // Mendapatkan data return berdasarkan ID
+      const returnData = await returnModels.getReturnById(req.params.id);
 
-      if (!returnData || !returnData.analysis.analyze_id) {
-        return res.status(404).json({ error: "Return data not found" });
+      // Jika data return tidak ada atau analyze_id tidak ada
+      if (!returnData || !returnData.analysis || !returnData.analysis.analyze_id) {
+        return res.status(404).json({ error: "Return data not found or analyze_id is missing" });
       }
 
-      const { analyze_id } = returnData.analysis; // Extract analyze_id from the analysis object
+      const { analyze_id } = returnData.analysis;
 
-      // Check the signed status using analyze_id
+      // Mendapatkan data history berdasarkan analyze_id
       const historyData = await historyModels.getHistoryByAnalyseId(analyze_id);
 
+      // Jika data history kosong
       if (!historyData || historyData.length === 0) {
         return res.status(200).json({ canEdit: false });
       }
 
+      // Mencari catatan yang statusnya 'signed'
       const signedRecord = historyData.find((record) => record.status === "signed");
 
+      // Jika tidak ada catatan yang statusnya 'signed'
       if (!signedRecord) {
-        return res.status(200).json({ canEdit: false });
+        return res.status(200).json({ canEdit: null }); // Mengembalikan null jika tidak ada catatan signed
       }
 
+      // Memeriksa apakah pengguna memiliki kewenangan
       const isAuthorized = signedRecord.created_by === sesa;
 
+      // Mengembalikan status edit berdasarkan kewenangan
       res.status(200).json({ canEdit: isAuthorized });
     } catch (error) {
       console.error("Error in checkSignedStatus:", error);
