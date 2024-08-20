@@ -81,10 +81,17 @@ const historyController = {
     }
   },
   async checkSignedStatus(req, res) {
-    const { analyze_id } = req; // Get analyze_id from the request object
     const { sesa } = req.userData;
 
     try {
+      const returnData = await returnModels.getReturnById(req.params.id); // Assuming returnModels.getReturnById exists
+
+      if (!returnData || !returnData.analysis.analyze_id) {
+        return res.status(404).json({ error: "Return data not found" });
+      }
+
+      const { analyze_id } = returnData.analysis; // Extract analyze_id from the analysis object
+
       // Check the signed status using analyze_id
       const historyData = await historyModels.getHistoryByAnalyseId(analyze_id);
 
