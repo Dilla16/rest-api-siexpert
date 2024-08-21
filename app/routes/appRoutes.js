@@ -59,6 +59,6 @@ router.post("/retur/analysis/assign", authMiddleware, historyController.assignHi
 router.post("/retur/analysis/save", authMiddleware, analyzeControllers.saveAnalysis);
 router.post("/retur/analysis/submitted", authMiddleware, analyzeControllers.submitAnalysis);
 router.post("/retur/analysis/decision", authMiddleware, analyzeControllers.decisionAnalysis);
-router.get("/retur/analysis/status/:id", authMiddleware, historyController.checkSignedStatus);
+router.get("/retur/analysis/status/:id", authMiddleware, historyController.checkStatus);
 
 module.exports = router;
