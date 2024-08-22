@@ -81,6 +81,23 @@ const historyModels = {
       throw new Error("Database query failed");
     }
   },
+
+  async getStatusByAnalyzeId(analyse_id) {
+    try {
+      const query = `
+        SELECT status 
+        FROM history 
+        WHERE analyse_id = $1 
+        ORDER BY created_at DESC 
+        LIMIT 1
+      `;
+      const res = await db.query(query, [analyse_id]);
+      return res.rows.length > 0 ? res.rows[0].status : null;
+    } catch (error) {
+      console.error("Error fetching status:", error.message || error);
+      throw error;
+    }
+  },
 };
 
 module.exports = historyModels;
