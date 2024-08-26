@@ -31,13 +31,13 @@ const analyzeControllers = {
       const returnData = await returModels.getReturnById(req.params.id);
 
       const { analyze_id } = returnData.analysis.analyze_id;
+      const { analysisData } = req.body;
 
-      const updatedAnalysis = await analyzeModels.updateAnalysisById(analyze_id, req.body);
+      const updatedAnalysis = await analyzeModels.updateAnalysisById(analyze_id, analysisData);
 
       if (updatedAnalysis) {
         const { sesa } = req.userData;
         await historyModels.createHistory(analyze_id, sesa, "process");
-
         res.status(200).json(updatedAnalysis);
       } else {
         res.status(404).json({ error: "Analysis not found." });
