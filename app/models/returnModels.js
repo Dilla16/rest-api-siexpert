@@ -210,14 +210,14 @@ const returModels = {
   },
 
   async updateReturnById(id, retur) {
-    const { retur_no, customer_name, country, product_id, qty, serial_no, issue, analyse_id } = retur;
+    const { retur_no, customer_name, country, product_name, serial_no, issue } = retur;
 
     try {
       const result = await db.query(
         `UPDATE retur 
-         SET retur_no = $1, customer_name = $2, country = $3, product_id = $4, qty = $5, serial_no = $6, issue = $7, analyse_id = $8 
-         WHERE retur_id = $9 RETURNING *`,
-        [retur_no, customer_name, country, product_id, qty, serial_no, issue, analyse_id, id]
+         SET retur_no = $1, customer_name = $2, country = $3, product_name = $4, serial_no = $5, issue = $6
+         WHERE retur_id = $7 RETURNING *`,
+        [retur_no, customer_name, country, product_name, serial_no, issue, id]
       );
       return result.rows[0];
     } catch (error) {
