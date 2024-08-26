@@ -50,7 +50,7 @@ router.delete("/returns/:id", authMiddleware, returControllers.deleteReturnById)
 // Analysis
 router.get("/analysis", analyzeControllers.getAllAnalysis);
 router.get("/analysis/:id", analyzeControllers.getAnalysisById);
-router.put("/analysis/:id", analyzeControllers.updateAnalysisById);
+router.put("/analysis/:id", authMiddleware, analyzeControllers.updateAnalysisById);
 router.delete("/analysis/:id", analyzeControllers.deleteAnalysisById);
 
 // History
