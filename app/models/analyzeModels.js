@@ -42,7 +42,7 @@ const analyzeModels = {
     return result.rows[0] ? result.rows[0].analyze_id : null;
   },
 
-  async updateAnalysisById(id, analysisData) {
+  async updateAnalysisById(analyze_id, analysisData) {
     const { verification, root_cause, defect_type, action } = analysisData;
 
     try {
@@ -53,7 +53,7 @@ const analyzeModels = {
              defect_type = COALESCE($3, defect_type), 
              action = COALESCE($4, action)
          WHERE analyze_id = $5 RETURNING *`,
-        [verification, root_cause, defect_type, action, id]
+        [verification, root_cause, defect_type, action, analyze_id]
       );
       return result.rows[0];
     } catch (error) {

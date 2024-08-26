@@ -4,7 +4,7 @@ const returnModels = require("../models/returnModels");
 const historyController = {
   async getHistoryByAnalyseId(req, res) {
     const { id } = req.params;
-    const statuses = ["created", "signed", "completed", "submitted", "approved", "closed"];
+    const statuses = ["created", "signed", "submitted", "rejected", "approved", "closed"];
 
     try {
       // Fetch the return data based on the provided id

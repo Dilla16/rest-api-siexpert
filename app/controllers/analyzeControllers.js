@@ -26,9 +26,18 @@ const analyzeControllers = {
   },
 
   async updateAnalysisById(req, res) {
-    const { id } = req.params;
     try {
-      const updatedAnalysis = await analyzeModels.updateAnalysisById(id, req.body);
+      // Get the return data based on ID
+      const returnData = await returnModels.getReturnById(req.params.id);
+
+      // Check if return data or analyze_id is missing
+      if (!returnData || !returnData.analysis || !returnData.analysis.analyze_id) {
+        return res.status(404).json({ error: "Return data not found or analyze_id is missing" });
+      }
+
+      const { analyze_id } = returnData.analysis;
+
+      const updatedAnalysis = await analyzeModels.updateAnalysisById(analyze_id, req.body);
       if (updatedAnalysis) {
         res.status(200).json(updatedAnalysis);
       } else {
