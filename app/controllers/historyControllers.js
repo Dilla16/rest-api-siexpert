@@ -134,7 +134,7 @@ const historyController = {
     }
 
     try {
-      const result = await analyzeModels.createSubmitAnalysis(analyze_id, sesa, "submitted");
+      const result = await historyModels.createSubmitAnalysis(analyze_id, sesa, "submitted");
       res.status(200).json(result);
     } catch (error) {
       res.status(500).json({ error: error.message });
