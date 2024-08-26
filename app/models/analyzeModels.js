@@ -57,7 +57,17 @@ const analyzeModels = {
              images = COALESCE($7, images),
              caption = COALESCE($8, caption)
          WHERE analyze_id = $9 RETURNING *`,
-        [verification, root_cause, defect_type, action, location, category, images ? JSON.stringify(images) : null, caption ? JSON.stringify(caption) : null, analyze_id]
+        [
+          verification !== undefined ? verification : null,
+          root_cause !== undefined ? root_cause : null,
+          defect_type !== undefined ? defect_type : null,
+          action !== undefined ? action : null,
+          location !== undefined ? location : null,
+          category !== undefined ? category : null,
+          images !== undefined ? JSON.stringify(images) : null,
+          caption !== undefined ? JSON.stringify(caption) : null,
+          analyze_id,
+        ]
       );
       return result.rows[0];
     } catch (error) {

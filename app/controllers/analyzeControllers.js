@@ -28,17 +28,20 @@ const analyzeControllers = {
 
   async updateAnalysisById(req, res) {
     try {
+      // Get the return data based on ID
       const returnData = await returModels.getReturnById(req.params.id);
 
-      if (!returnData.analysis.analyze_id) {
+      // Check if return data or analysis property is missing
+      if (!returnData || !returnData.analysis || !returnData.analysis.analyze_id) {
         return res.status(404).json({ error: "Return data not found or analyze_id is missing" });
       }
 
-      const { analyze_id } = returnData.analysis.analyze_id;
+      const { analyze_id } = returnData.analysis;
 
+      // Update the analysis data
       const updatedAnalysis = await analyzeModels.updateAnalysisById(analyze_id, req.body);
       if (updatedAnalysis) {
-        const { sesa } = req.userData;
+        const { sesa } = req.userData; // Assuming userData contains user info
         await historyModels.createHistory(analyze_id, sesa, "process");
 
         res.status(200).json(updatedAnalysis);
