@@ -37,8 +37,13 @@ const analyzeControllers = {
 
       const { analyze_id } = returnData.analysis;
 
+      // Update the analysis data
       const updatedAnalysis = await analyzeModels.updateAnalysisById(analyze_id, req.body);
       if (updatedAnalysis) {
+        // Create a history record with status "save"
+        const { sesa } = req.userData; // Assuming userData contains user info
+        await historyModels.createHistory(analyze_id, sesa, "save");
+
         res.status(200).json(updatedAnalysis);
       } else {
         res.status(404).json({ error: "Analysis not found." });

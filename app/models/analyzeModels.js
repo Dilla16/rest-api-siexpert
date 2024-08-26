@@ -42,17 +42,19 @@ const analyzeModels = {
     return result.rows[0] ? result.rows[0].analyze_id : null;
   },
 
+  // analyzeModels.js
+
   async updateAnalysisById(analyze_id, analysisData) {
     const { verification, root_cause, defect_type, action } = analysisData;
 
     try {
       const result = await db.query(
         `UPDATE analysis
-         SET verification = COALESCE($1, verification), 
-             root_cause = COALESCE($2, root_cause), 
-             defect_type = COALESCE($3, defect_type), 
-             action = COALESCE($4, action)
-         WHERE analyze_id = $5 RETURNING *`,
+       SET verification = COALESCE($1, verification), 
+           root_cause = COALESCE($2, root_cause), 
+           defect_type = COALESCE($3, defect_type), 
+           action = COALESCE($4, action)
+       WHERE analyze_id = $5 RETURNING *`,
         [verification, root_cause, defect_type, action, analyze_id]
       );
       return result.rows[0];
@@ -61,7 +63,6 @@ const analyzeModels = {
       throw new Error("Database query failed");
     }
   },
-
   async deleteAnalysisById(id) {
     try {
       const result = await db.query("DELETE FROM analysis WHERE analyze_id = $1 RETURNING *", [id]);
