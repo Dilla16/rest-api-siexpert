@@ -30,8 +30,19 @@ const analyzeControllers = {
     try {
       const returnData = await returModels.getReturnById(req.params.id);
 
-      const { analyze_id } = returnData.analysis.analyze_id;
-      const { analysisData } = req.body;
+      // Debugging logs
+      console.log("Return Data:", returnData);
+
+      if (!returnData || !returnData.analysis) {
+        return res.status(404).json({ error: "Return data or analysis not found." });
+      }
+
+      const analyze_id = returnData.analysis.analyze_id;
+      if (!analyze_id) {
+        return res.status(404).json({ error: "Analyze ID not found." });
+      }
+
+      const analysisData = req.body;
 
       const updatedAnalysis = await analyzeModels.updateAnalysisById(analyze_id, analysisData);
 
