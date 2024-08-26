@@ -29,21 +29,6 @@ const historyModels = {
     }
   },
 
-  async getHistoryById(history_id) {
-    try {
-      const result = await db.query(
-        `SELECT history_id, analyse_id, status, created_at, created_by
-         FROM history
-         WHERE history_id = $1`,
-        [history_id]
-      );
-      return result.rows[0];
-    } catch (error) {
-      console.error("Error in getHistoryById:", error);
-      throw new Error("Database query failed");
-    }
-  },
-
   async createHistoryAssign(analyze_id, created_by, status) {
     try {
       await db.query("BEGIN");
@@ -94,6 +79,23 @@ const historyModels = {
       return res.rows.length > 0 ? res.rows[0].status : null;
     } catch (error) {
       console.error("Error fetching status:", error.message || error);
+      throw error;
+    }
+  },
+  async createSubmitAnalysis(analyzeId, sesa, status) {
+    try {
+      // Assuming you have a table named 'analysis_history' to store status updates
+      // Adjust the table and column names as necessary
+      const result = await db.query(
+        `INSERT INTO analysis_history (analyze_id, status, updated_by, updated_at)
+         VALUES ($1, $2, $3, NOW())
+         RETURNING *`,
+        [analyzeId, status, sesa]
+      );
+
+      return result.rows[0]; // Return the newly created history record
+    } catch (error) {
+      console.error("Error creating submit analysis history:", error);
       throw error;
     }
   },

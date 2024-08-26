@@ -125,6 +125,21 @@ const historyController = {
       res.status(500).json({ error: "Internal Server Error", details: error.message });
     }
   },
+  async submitAnalysis(req, res) {
+    const { analyze_id } = req.params;
+    const { sesa } = req.userData;
+
+    if (!analyze_id) {
+      return res.status(400).json({ error: "Bad Request", details: "Analyze ID is required" });
+    }
+
+    try {
+      const result = await analyzeModels.createSubmitAnalysis(analyze_id, sesa, "submitted");
+      res.status(200).json(result);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  },
 };
 
 module.exports = historyController;

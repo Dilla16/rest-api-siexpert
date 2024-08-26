@@ -119,28 +119,6 @@ const analyzeModels = {
       throw new Error("Database query failed");
     }
   },
-  async updateAnalysisStatus(analyzeId, sesa, status) {
-    try {
-      // Assuming you have a table named 'analyses' and it has a column 'status'
-      // Adjust the query based on your actual table and column names
-      const result = await db.query(
-        `UPDATE analyses
-         SET status = $1, updated_by = $2, updated_at = NOW()
-         WHERE analyze_id = $3
-         RETURNING *`,
-        [status, sesa, analyzeId]
-      );
-
-      if (result.rowCount === 0) {
-        throw new Error("Analysis not found");
-      }
-
-      return result.rows[0];
-    } catch (error) {
-      console.error("Error updating analysis status:", error);
-      throw error;
-    }
-  },
 };
 
 module.exports = analyzeModels;
