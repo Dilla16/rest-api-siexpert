@@ -29,7 +29,7 @@ const analyzeControllers = {
   async updateAnalysisById(req, res) {
     try {
       // Get the return data based on ID
-      const returnData = await returnModels.getReturnById(req.params.id);
+      const returnData = await returModels.getReturnById(req.params.id);
 
       // Check if return data or analyze_id is missing
       if (!returnData || !returnData.analysis || !returnData.analysis.analyze_id) {
