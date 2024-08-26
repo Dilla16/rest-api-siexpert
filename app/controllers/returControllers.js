@@ -5,28 +5,6 @@ const analyzeModels = require("../models/analyzeModels");
 const userModels = require("./../models/userModels");
 
 const ReturController = {
-  // async getAllReturns(req, res) {
-  //   try {
-  //     const { sesa } = req.userData;
-
-  //     if (!sesa) {
-  //       throw new Error("Invalid userData or sesa not found");
-  //     }
-
-  //     const departments = await userModels.getDepartmentBySesa(sesa);
-
-  //     if (!Array.isArray(departments) || departments.length === 0) {
-  //       throw new Error("Invalid userData or departments");
-  //     }
-
-  //     const returns = await returModels.getReturnsByDepartments(departments);
-
-  //     res.status(200).json(returns);
-  //   } catch (error) {
-  //     console.error("Error in getAllReturns:", error.message || error);
-  //     res.status(500).json({ error: "Internal Server Error", details: error.message });
-  //   }
-  // },
   async getAllReturns(req, res) {
     try {
       const { sesa } = req.userData;
