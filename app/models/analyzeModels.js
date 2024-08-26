@@ -42,20 +42,41 @@ const analyzeModels = {
     return result.rows[0] ? result.rows[0].analyze_id : null;
   },
 
-  // analyzeModels.js
-
   async updateAnalysisById(analyze_id, analysisData) {
-    const { verification, root_cause, defect_type, action } = analysisData;
+    const {
+      verification,
+      root_cause,
+      defect_type,
+      action,
+      location,
+      category,
+      images, // Array of image URLs or paths
+      caption, // Array of captions corresponding to images
+    } = analysisData;
 
     try {
       const result = await db.query(
         `UPDATE analysis
-       SET verification = COALESCE($1, verification), 
-           root_cause = COALESCE($2, root_cause), 
-           defect_type = COALESCE($3, defect_type), 
-           action = COALESCE($4, action)
-       WHERE analyze_id = $5 RETURNING *`,
-        [verification, root_cause, defect_type, action, analyze_id]
+         SET verification = COALESCE($1, verification), 
+             root_cause = COALESCE($2, root_cause), 
+             defect_type = COALESCE($3, defect_type), 
+             action = COALESCE($4, action),
+             location = COALESCE($5, location),
+             category = COALESCE($6, category),
+             images = COALESCE($7, images),
+             caption = COALESCE($8, caption)
+         WHERE analyze_id = $9 RETURNING *`,
+        [
+          verification,
+          root_cause,
+          defect_type,
+          action,
+          location,
+          category,
+          images ? JSON.stringify(images) : null, // Convert array to JSON string
+          caption ? JSON.stringify(caption) : null, // Convert array to JSON string
+          analyze_id,
+        ]
       );
       return result.rows[0];
     } catch (error) {

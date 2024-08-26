@@ -42,7 +42,7 @@ const analyzeControllers = {
       if (updatedAnalysis) {
         // Create a history record with status "save"
         const { sesa } = req.userData; // Assuming userData contains user info
-        await historyModels.createHistory(analyze_id, sesa, "save");
+        await historyModels.createHistory(analyze_id, sesa, "Analysis");
 
         res.status(200).json(updatedAnalysis);
       } else {
@@ -52,7 +52,6 @@ const analyzeControllers = {
       res.status(500).json({ error: error.message });
     }
   },
-
   async deleteAnalysisById(req, res) {
     const { id } = req.params;
     try {
