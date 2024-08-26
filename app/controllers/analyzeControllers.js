@@ -33,6 +33,7 @@ const analyzeControllers = {
       const { analyze_id } = returnData.analysis.analyze_id;
 
       const updatedAnalysis = await analyzeModels.updateAnalysisById(analyze_id, req.body);
+
       if (updatedAnalysis) {
         const { sesa } = req.userData;
         await historyModels.createHistory(analyze_id, sesa, "process");
