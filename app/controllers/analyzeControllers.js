@@ -30,7 +30,7 @@ const analyzeControllers = {
     try {
       const returnData = await returModels.getReturnById(req.params.id);
 
-      if (!returnData || !returnData.analysis || !returnData.analysis.analyze_id) {
+      if (!returnData.analysis.analyze_id) {
         return res.status(404).json({ error: "Return data not found or analyze_id is missing" });
       }
 

@@ -43,16 +43,7 @@ const analyzeModels = {
   },
 
   async updateAnalysisById(analyze_id, analysisData) {
-    const {
-      verification,
-      root_cause,
-      defect_type,
-      action,
-      location,
-      category,
-      images, // Array of image URLs or paths
-      caption, // Array of captions corresponding to images
-    } = analysisData;
+    const { verification, root_cause, defect_type, action, location, category, images, caption } = analysisData;
 
     try {
       const result = await db.query(
@@ -66,17 +57,7 @@ const analyzeModels = {
              images = COALESCE($7, images),
              caption = COALESCE($8, caption)
          WHERE analyze_id = $9 RETURNING *`,
-        [
-          verification,
-          root_cause,
-          defect_type,
-          action,
-          location,
-          category,
-          images ? JSON.stringify(images) : null, // Convert array to JSON string
-          caption ? JSON.stringify(caption) : null, // Convert array to JSON string
-          analyze_id,
-        ]
+        [verification, root_cause, defect_type, action, location, category, images ? JSON.stringify(images) : null, caption ? JSON.stringify(caption) : null, analyze_id]
       );
       return result.rows[0];
     } catch (error) {
