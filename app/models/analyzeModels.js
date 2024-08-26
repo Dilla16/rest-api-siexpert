@@ -49,10 +49,10 @@ const analyzeModels = {
       const result = await db.query(
         `UPDATE analysis
          SET verification = COALESCE($1, verification), 
-             root_cause = COALESCE($2, root_cause), 
-             defect_type = COALESCE($3, defect_type), 
-             action = COALESCE($4, action),
-             location = COALESCE($5, location),
+             location = COALESCE($2, location),
+             root_cause = COALESCE($3, root_cause), 
+             defect_type = COALESCE($4, defect_type), 
+             action = COALESCE($5, action),
              category = COALESCE($6, category),
              images = COALESCE($7, images),
              caption = COALESCE($8, caption)
@@ -64,8 +64,8 @@ const analyzeModels = {
           action !== undefined ? action : null,
           location !== undefined ? location : null,
           category !== undefined ? category : null,
-          images !== undefined ? JSON.stringify(images) : null,
-          caption !== undefined ? JSON.stringify(caption) : null,
+          images !== undefined ? images : null, // No JSON.stringify needed
+          caption !== undefined ? caption : null, // No JSON.stringify needed
           analyze_id,
         ]
       );
