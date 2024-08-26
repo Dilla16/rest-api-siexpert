@@ -170,7 +170,7 @@ const analyzeControllers = {
 
   // Submit an analysis
   async submitAnalysis(req, res) {
-    const { analyze_id } = req.body;
+    const { analyze_id } = req.params;
     const { sesa } = req.userData;
 
     if (!analyze_id) {
