@@ -193,20 +193,73 @@ const ReturController = {
     }
   },
 
+  // async updateReturnById(req, res) {
+  //   try {
+  //     const updatedReturn = await returModels.updateReturnById(req.params.id, req.body);
+  //     if (updatedReturn) {
+  //       res.status(200).json(updatedReturn);
+  //     } else {
+  //       res.status(404).json({ message: "Return not found" });
+  //     }
+  //   } catch (error) {
+  //     console.error("Error in updateReturnById:", error);
+  //     res.status(500).json({ error: "Internal Server Error", details: error.message });
+  //   }
+  // },
+
   async updateReturnById(req, res) {
+    const { id } = req.params;
+    const { returnData } = req.body; // Assume returnData is sent in the request body
+
+    if (!returnData) {
+      return res.status(400).json({ error: "Bad Request", details: "Return data is required" });
+    }
+
+    const { retur_no, customer_name, country, product_name, serial_no, issue } = returnData;
+
+    if (!retur_no || !customer_name || !country || !product_name || !serial_no || !issue) {
+      return res.status(400).json({ error: "Bad Request", details: "All fields are required" });
+    }
+
     try {
-      const updatedReturn = await returModels.updateReturnById(req.params.id, req.body);
-      if (updatedReturn) {
-        res.status(200).json(updatedReturn);
-      } else {
-        res.status(404).json({ message: "Return not found" });
+      // Begin transaction
+      await returModels.beginTransaction();
+
+      // Fetch product_id based on product_name
+      const product = await productModels.getProductByName(product_name);
+      if (!product) {
+        await returModels.rollbackTransaction();
+        return res.status(404).json({ error: "Not Found", details: "Product not found" });
       }
+      const product_id = product.product_id;
+
+      // Update return record
+      const updatedReturn = await returModels.updateReturnById(id, {
+        retur_no,
+        customer_name,
+        country,
+        product_id,
+        serial_no,
+        issue,
+      });
+
+      if (!updatedReturn) {
+        await returModels.rollbackTransaction();
+        return res.status(404).json({ error: "Not Found", details: "Return record not found" });
+      }
+
+      // Commit transaction
+      await returModels.commitTransaction();
+
+      // Return updated return data
+      res.status(200).json(updatedReturn);
     } catch (error) {
       console.error("Error in updateReturnById:", error);
+      // Rollback transaction in case of error
+      await returModels.rollbackTransaction();
       res.status(500).json({ error: "Internal Server Error", details: error.message });
     }
   },
-
   async deleteReturnById(req, res) {
     const { id } = req.params;
     const { sesa } = req.userData;
