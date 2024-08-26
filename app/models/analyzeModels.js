@@ -42,24 +42,6 @@ const analyzeModels = {
     return result.rows[0] ? result.rows[0].analyze_id : null;
   },
 
-  // async updateAnalysisById(analyze_id, analysisData) {
-  //   const { verification, root_cause, defect_type, action, location, category, images, caption } = analysisData;
-
-  //   try {
-  //     const result = await db.query(
-  //       `UPDATE analysis
-  //        SET verification = $1, root_cause = $2, defect_type = $3, action = $4, location = $5, category = $6, images = $7, caption = $8
-  //        WHERE analyze_id = $9
-  //        RETURNING *`,
-  //       [verification, root_cause, defect_type, action, location, category, images, caption, analyze_id]
-  //     );
-  //     return result.rows[0];
-  //   } catch (error) {
-  //     console.error("Error in update Analysis:", error.message || error);
-  //     throw new Error("Database query failed");
-  //   }
-  // },
-
   async updateAnalysisById(analyze_id, analysisData) {
     const { verification, root_cause, defect_type, action, location, category, images, caption } = analysisData;
 
@@ -135,6 +117,28 @@ const analyzeModels = {
     } catch (error) {
       console.error("Error in saveAnalysis:", error);
       throw new Error("Database query failed");
+    }
+  },
+  async updateAnalysisStatus(analyzeId, sesa, status) {
+    try {
+      // Assuming you have a table named 'analyses' and it has a column 'status'
+      // Adjust the query based on your actual table and column names
+      const result = await db.query(
+        `UPDATE analyses
+         SET status = $1, updated_by = $2, updated_at = NOW()
+         WHERE analyze_id = $3
+         RETURNING *`,
+        [status, sesa, analyzeId]
+      );
+
+      if (result.rowCount === 0) {
+        throw new Error("Analysis not found");
+      }
+
+      return result.rows[0];
+    } catch (error) {
+      console.error("Error updating analysis status:", error);
+      throw error;
     }
   },
 };
