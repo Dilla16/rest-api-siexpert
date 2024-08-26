@@ -66,7 +66,7 @@ const historyController = {
     }
   },
   async assignHistory(req, res) {
-    const { analyze_id } = req.params;
+    const { analyze_id } = req.params.id;
     const { sesa } = req.userData;
 
     if (!analyze_id) {
