@@ -193,20 +193,6 @@ const ReturController = {
     }
   },
 
-  // async updateReturnById(req, res) {
-  //   try {
-  //     const updatedReturn = await returModels.updateReturnById(req.params.id, req.body);
-  //     if (updatedReturn) {
-  //       res.status(200).json(updatedReturn);
-  //     } else {
-  //       res.status(404).json({ message: "Return not found" });
-  //     }
-  //   } catch (error) {
-  //     console.error("Error in updateReturnById:", error);
-  //     res.status(500).json({ error: "Internal Server Error", details: error.message });
-  //   }
-  // },
-
   async updateReturnById(req, res) {
     const { id } = req.params;
     const { returnData } = req.body; // Assume returnData is sent in the request body

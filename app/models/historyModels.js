@@ -11,7 +11,6 @@ const historyModels = {
       return result.rows[0];
     } catch (error) {
       console.error("Error in createHistory:", error);
-      throw new Error("Database query failed");
     }
   },
 

@@ -42,24 +42,53 @@ const analyzeModels = {
     return result.rows[0] ? result.rows[0].analyze_id : null;
   },
 
+  // async updateAnalysisById(analyze_id, analysisData) {
+  //   const { verification, root_cause, defect_type, action, location, category, images, caption } = analysisData;
+
+  //   try {
+  //     const result = await db.query(
+  //       `UPDATE analysis
+  //        SET verification = $1, root_cause = $2, defect_type = $3, action = $4, location = $5, category = $6, images = $7, caption = $8
+  //        WHERE analyze_id = $9
+  //        RETURNING *`,
+  //       [verification, root_cause, defect_type, action, location, category, images, caption, analyze_id]
+  //     );
+  //     return result.rows[0];
+  //   } catch (error) {
+  //     console.error("Error in update Analysis:", error.message || error);
+  //     throw new Error("Database query failed");
+  //   }
+  // },
+
   async updateAnalysisById(analyze_id, analysisData) {
     const { verification, root_cause, defect_type, action, location, category, images, caption } = analysisData;
 
-    console.log("Updating Analysis ID:", analyze_id);
-    console.log("Analysis Data:", analysisData);
-
     try {
+      // Log the parameters and query for debugging
+      console.log("Updating Analysis with ID:", analyze_id);
+      console.log("Parameters:", {
+        verification,
+        root_cause,
+        defect_type,
+        action,
+        location,
+        category,
+        images,
+        caption,
+      });
+
       const result = await db.query(
         `UPDATE analysis
-         SET verification = COALESCE($1, verification), 
-             location = COALESCE($2, location),
-             root_cause = COALESCE($3, root_cause), 
-             defect_type = COALESCE($4, defect_type), 
-             action = COALESCE($5, action),
-             category = COALESCE($6, category),
-             images = COALESCE($7, images),
-             caption = COALESCE($8, caption)
-         WHERE analyze_id = $9 RETURNING *`,
+             SET verification = $1, 
+                 root_cause = $2, 
+                 defect_type = $3, 
+                 action = $4, 
+                 location = $5, 
+                 category = $6, 
+                 images = $7, 
+                 caption = $8
+             WHERE analyze_id = $9
+             RETURNING *`,
         [
           verification !== undefined ? verification : null,
           root_cause !== undefined ? root_cause : null,
@@ -67,15 +96,18 @@ const analyzeModels = {
           action !== undefined ? action : null,
           location !== undefined ? location : null,
           category !== undefined ? category : null,
-          images !== undefined ? images : null, // No JSON.stringify needed
-          caption !== undefined ? caption : null, // No JSON.stringify needed
+          images !== undefined ? images : null,
+          caption !== undefined ? caption : null,
           analyze_id,
         ]
       );
+
+      // Log the result for debugging
+      console.log("Update Result:", result.rows[0]);
+
       return result.rows[0];
     } catch (error) {
       console.error("Error in updateAnalysisById:", error);
-      throw new Error("Database query failed: " + error.message);
     }
   },
   async deleteAnalysisById(id) {
@@ -84,7 +116,7 @@ const analyzeModels = {
       return result.rows[0];
     } catch (error) {
       console.error("Error in deleteAnalysisById:", error);
-      throw new Error("Database query failed");
+      throw new Error("Database query failed: " + error.message);
     }
   },
 
