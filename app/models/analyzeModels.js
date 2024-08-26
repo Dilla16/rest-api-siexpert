@@ -45,6 +45,9 @@ const analyzeModels = {
   async updateAnalysisById(analyze_id, analysisData) {
     const { verification, root_cause, defect_type, action, location, category, images, caption } = analysisData;
 
+    console.log("Updating Analysis ID:", analyze_id);
+    console.log("Analysis Data:", analysisData);
+
     try {
       const result = await db.query(
         `UPDATE analysis
@@ -72,7 +75,7 @@ const analyzeModels = {
       return result.rows[0];
     } catch (error) {
       console.error("Error in updateAnalysisById:", error);
-      throw new Error("Database query failed");
+      throw new Error("Database query failed: " + error.message);
     }
   },
   async deleteAnalysisById(id) {
