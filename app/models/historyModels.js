@@ -68,7 +68,6 @@ const historyModels = {
     } catch (error) {
       await db.query("ROLLBACK");
       console.error("Error in createHistoryDecision:", error);
-      throw new Error("Database query failed");
     }
   },
   async getHistoryByAnalyseId(analyse_id) {
