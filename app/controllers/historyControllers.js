@@ -97,16 +97,12 @@ const historyController = {
       // Get history data based on analyze_id
       const historyData = await historyModels.getHistoryByAnalyseId(analyze_id);
 
-      // Initialize status values
-      let canEdit = null; // This will be true, false, or null
-      let haveSubmitted = false; // This will be true or false
+      let canEdit = null;
+      let haveSubmitted = false;
 
-      // Check if history data is empty
       if (historyData && historyData.length > 0) {
-        // Check if any record has the status 'submitted'
         haveSubmitted = historyData.some((record) => record.status === "submitted");
 
-        // Find a record with status 'signed'
         const signedRecord = historyData.find((record) => record.status === "signed");
 
         // Set canEdit based on whether a signed record exists and if the user is authorized

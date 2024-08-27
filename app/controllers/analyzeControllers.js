@@ -26,61 +26,20 @@ const analyzeControllers = {
     }
   },
 
-  // async updateAnalysisById(req, res) {
-  //   try {
-  //     const returnData = await returModels.getReturnById(req.params.id);
-
-  //     // Debugging logs
-  //     console.log("Return Data:", returnData);
-
-  //     if (!returnData || !returnData.analysis) {
-  //       return res.status(404).json({ error: "Return data or analysis not found." });
-  //     }
-
-  //     const analyze_id = returnData.analysis.analyze_id;
-  //     if (!analyze_id) {
-  //       return res.status(404).json({ error: "Analyze ID not found." });
-  //     }
-
-  //     const analysisData = req.body;
-
-  //     // Validate if analysisData is an object
-  //     if (typeof analysisData !== "object" || Array.isArray(analysisData)) {
-  //       return res.status(400).json({ error: "Invalid analysis data format." });
-  //     }
-
-  //     console.log("Analysis Data to be updated:", analysisData);
-
-  //     const updatedAnalysis = await analyzeModels.updateAnalysisById(analyze_id, analysisData);
-
-  //     if (updatedAnalysis) {
-  //       const { sesa } = req.userData;
-  //       await historyModels.createHistory(analyze_id, sesa, "process");
-  //       res.status(200).json(updatedAnalysis);
-  //     } else {
-  //       res.status(404).json({ error: "Analysis not found." });
-  //     }
-  //   } catch (error) {
-  //     console.error("Error in updateAnalysisById controller:", error.message);
-  //     res.status(500).json({ error: "Database query failed: " + error.message });
-  //   }
-  // },
-
   // analysisController
   async updateAnalysisById(req, res) {
     try {
-      // Get the return data based on ID
-      const returnData = await returModels.getReturnById(req.params.id);
+      // const returnData = await returModels.getReturnById(req.params.id);
 
-      console.log("Return Data:", returnData);
+      // console.log("Return Data:", returnData);
 
-      // Check if return data or analysis is missing
-      if (!returnData || !returnData.analysis) {
-        return res.status(404).json({ error: "Return data or analysis not found." });
-      }
+      // // Check if return data or analysis is missing
+      // if (!returnData || !returnData.analysis) {
+      //   return res.status(404).json({ error: "Return data or analysis not found." });
+      // }
 
-      // Extract analyze_id
-      const analyze_id = returnData.analysis.analyze_id;
+      // // Extract analyze_id
+      const { analyze_id } = req.params.id;
       if (!analyze_id) {
         return res.status(404).json({ error: "Analyze ID not found." });
       }
