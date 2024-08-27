@@ -57,7 +57,7 @@ router.delete("/analysis/:id", analyzeControllers.deleteAnalysisById);
 router.get("/history/:id", historyController.getHistoryByAnalyseId);
 router.post("/retur/analysis/assign/:analyze_id", authMiddleware, historyController.assignHistory);
 router.post("/retur/analysis/submitted/:analyze_id", authMiddleware, historyController.submitAnalysis);
-router.post("/retur/analysis/decision", authMiddleware, analyzeControllers.decisionAnalysis);
+router.post("/retur/analysis/decision", authMiddleware, historyController.decisionAnalysis);
 router.get("/retur/analysis/status/:id", authMiddleware, historyController.checkStatus);
 
 module.exports = router;

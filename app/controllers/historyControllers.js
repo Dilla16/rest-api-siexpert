@@ -136,6 +136,40 @@ const historyController = {
       res.status(500).json({ error: error.message });
     }
   },
+  async decisionAnalysis(req, res) {
+    const { analyze_id, decision } = req.body;
+    const { sesa } = req.userData;
+
+    if (!analyze_id || !decision) {
+      return res.status(400).json({ error: "Bad Request", details: "Analyze ID and decision are required" });
+    }
+
+    try {
+      // Determine the status and create history entries
+      let historyEntries = [];
+
+      if (decision === "approved") {
+        historyEntries = [
+          { analyze_id, status: "approved", created_by: sesa },
+          { analyze_id, status: "closed", created_by: sesa },
+        ];
+      } else if (decision === "rejected") {
+        historyEntries = [{ analyze_id, status: "rejected", created_by: sesa }];
+      } else {
+        return res.status(400).json({ error: "Bad Request", details: "Invalid decision value" });
+      }
+
+      // Create history entries in the database
+      for (const entry of historyEntries) {
+        await historyModels.createHistory(entry);
+      }
+
+      res.status(200).json({ message: `Decision ${decision} processed and history created` });
+    } catch (error) {
+      console.error("Error processing decision and creating history:", error);
+      res.status(500).json({ error: "Internal Server Error", details: error.message });
+    }
+  },
 };
 
 module.exports = historyController;

@@ -126,31 +126,5 @@ const analyzeControllers = {
       res.status(500).json({ error: error.message });
     }
   },
-
-  // Decide on an analysis
-  async decisionAnalysis(req, res) {
-    const { analyze_id, decision } = req.body;
-    const { sesa } = req.userData;
-
-    if (!analyze_id || !decision) {
-      return res.status(400).json({ error: "Bad Request", details: "Analyze ID and decision are required" });
-    }
-
-    let status;
-    if (decision === "approved") {
-      status = "closed";
-    } else if (decision === "rejected") {
-      status = "rejected";
-    } else {
-      return res.status(400).json({ error: "Bad Request", details: "Invalid decision value" });
-    }
-
-    try {
-      const result = await analyzeModels.updateAnalysisStatus(analyze_id, sesa, status);
-      res.status(200).json(result);
-    } catch (error) {
-      res.status(500).json({ error: error.message });
-    }
-  },
 };
 module.exports = analyzeControllers;
