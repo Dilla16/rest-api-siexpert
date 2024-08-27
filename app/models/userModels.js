@@ -70,7 +70,6 @@ const UserModel = {
         throw new Error("User department not found");
       }
 
-      // Check if department is a string or array and handle accordingly
       let department = result.rows[0].department;
 
       if (typeof department === "string") {
