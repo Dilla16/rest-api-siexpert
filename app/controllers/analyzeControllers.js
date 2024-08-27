@@ -39,7 +39,7 @@ const analyzeControllers = {
       // }
 
       // // Extract analyze_id
-      const { analyze_id } = req.params.id;
+      const analyze_id = req.params.id;
       if (!analyze_id) {
         return res.status(404).json({ error: "Analyze ID not found." });
       }
