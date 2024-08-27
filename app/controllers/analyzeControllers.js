@@ -29,13 +29,23 @@ const analyzeControllers = {
   // analysisController
   async updateAnalysisById(req, res) {
     try {
-      const { analyze_id } = req.params;
+      const returnData = await returModels.getReturnById(req.params.id);
+
+      console.log("Return Data:", returnData);
+
+      // Check if return data or analysis is missing
+      if (!returnData || !returnData.analysis) {
+        return res.status(404).json({ error: "Return data or analysis not found." });
+      }
+
+      // Extract analyze_id
+      const analyze_id = returnData.analysis.analyze_id;
       if (!analyze_id) {
         return res.status(404).json({ error: "Analyze ID not found." });
       }
 
       // Extract analysisData from request body
-      const analysisData = req.body;
+      const analysisData = req.body.analysisData;
       if (!analysisData) {
         return res.status(400).json({ error: "Bad Request", details: "Analysis data is required" });
       }
