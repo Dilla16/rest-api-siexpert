@@ -162,7 +162,7 @@ const historyController = {
 
       // Create history entries in the database
       for (const entry of historyEntries) {
-        await historyModels.createHistory(entry);
+        await historyModels.createHistoryDecision(entry.analyze_id, entry.created_by, entry.status);
       }
 
       res.status(200).json({ message: `Decision ${decision} processed and history created` });
