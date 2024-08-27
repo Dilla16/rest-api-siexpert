@@ -137,7 +137,7 @@ const historyController = {
     }
   },
   async decisionAnalysis(req, res) {
-    const { analyse_id } = req.params;
+    const { analyze_id } = req.params;
     const { decision } = req.body;
     const { sesa } = req.userData;
 
