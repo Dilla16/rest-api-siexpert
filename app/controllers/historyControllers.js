@@ -99,23 +99,21 @@ const historyController = {
 
   //     let canEdit = null;
   //     let haveSubmitted = false;
+  //     let signed = false;
 
   //     if (historyData && historyData.length > 0) {
   //       haveSubmitted = historyData.some((record) => record.status === "submitted");
 
   //       const signedRecord = historyData.find((record) => record.status === "signed");
 
-  //       // Set canEdit based on whether a signed record exists and if the user is authorized
   //       if (signedRecord) {
+  //         signed = true;
   //         canEdit = signedRecord.created_by === sesa;
   //       }
-  //     } else {
-  //       // If no history records are found, canEdit remains null
-  //       canEdit = null;
   //     }
 
-  //     // Return both statuses
-  //     res.status(200).json({ canEdit, haveSubmitted });
+  //     // Return both statuses along with signed
+  //     res.status(200).json({ canEdit, haveSubmitted, signed });
   //   } catch (error) {
   //     console.error("Error in checkStatus:", error);
   //     res.status(500).json({ error: "Internal Server Error", details: error.message });
@@ -141,6 +139,8 @@ const historyController = {
       let canEdit = null;
       let haveSubmitted = false;
       let signed = false;
+      let approved = false;
+      let rejected = false;
 
       if (historyData && historyData.length > 0) {
         haveSubmitted = historyData.some((record) => record.status === "submitted");
@@ -151,10 +151,20 @@ const historyController = {
           signed = true;
           canEdit = signedRecord.created_by === sesa;
         }
+
+        // Determine approved and rejected statuses
+        approved = historyData.some((record) => record.status === "approved");
+        rejected = historyData.some((record) => record.status === "rejected");
+
+        if (approved && !rejected) {
+          rejected = false;
+        } else if (rejected && !approved) {
+          approved = false;
+        }
       }
 
       // Return both statuses along with signed
-      res.status(200).json({ canEdit, haveSubmitted, signed });
+      res.status(200).json({ canEdit, haveSubmitted, signed, approved, rejected });
     } catch (error) {
       console.error("Error in checkStatus:", error);
       res.status(500).json({ error: "Internal Server Error", details: error.message });
