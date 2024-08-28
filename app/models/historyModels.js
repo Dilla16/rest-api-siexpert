@@ -55,7 +55,7 @@ const historyModels = {
       await db.query("BEGIN");
 
       const historyResult = await db.query(
-        `INSERT INTO history (analyze_id, created_by, status, comment, created_at)
+        `INSERT INTO history (analyse_id, created_by, status, comment, created_at)
          VALUES ($1, $2, $3, $4, NOW()) RETURNING *`,
         [analyze_id, created_by, status, comment]
       );
