@@ -5,6 +5,7 @@ const returControllers = require("../controllers/returControllers");
 const analyzeControllers = require("../controllers/analyzeControllers");
 const authMiddleware = require("../middleware/auth");
 const historyController = require("../controllers/historyControllers");
+const notificationController = require("../controllers/notificationControllers");
 
 const router = express.Router();
 
@@ -59,5 +60,8 @@ router.post("/retur/analysis/assign/:analyze_id", authMiddleware, historyControl
 router.post("/retur/analysis/submitted/:analyze_id", authMiddleware, historyController.submitAnalysis);
 router.post("/retur/analysis/decision/:analyze_id", authMiddleware, historyController.decisionAnalysis);
 router.get("/retur/analysis/status/:id", authMiddleware, historyController.checkStatus);
+
+// Notifications
+router.get("/notifications/:sesa", authMiddleware, notificationController.getUserNotifications);
 
 module.exports = router;

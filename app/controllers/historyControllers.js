@@ -80,6 +80,47 @@ const historyController = {
       res.status(500).json({ error: error.message });
     }
   },
+  // async checkStatus(req, res) {
+  //   const { sesa } = req.userData;
+
+  //   try {
+  //     // Get the return data based on ID
+  //     const returnData = await returnModels.getReturnById(req.params.id);
+
+  //     // Check if return data or analyze_id is missing
+  //     if (!returnData || !returnData.analysis || !returnData.analysis.analyze_id) {
+  //       return res.status(404).json({ error: "Return data not found or analyze_id is missing" });
+  //     }
+
+  //     const { analyze_id } = returnData.analysis;
+
+  //     // Get history data based on analyze_id
+  //     const historyData = await historyModels.getHistoryByAnalyseId(analyze_id);
+
+  //     let canEdit = null;
+  //     let haveSubmitted = false;
+
+  //     if (historyData && historyData.length > 0) {
+  //       haveSubmitted = historyData.some((record) => record.status === "submitted");
+
+  //       const signedRecord = historyData.find((record) => record.status === "signed");
+
+  //       // Set canEdit based on whether a signed record exists and if the user is authorized
+  //       if (signedRecord) {
+  //         canEdit = signedRecord.created_by === sesa;
+  //       }
+  //     } else {
+  //       // If no history records are found, canEdit remains null
+  //       canEdit = null;
+  //     }
+
+  //     // Return both statuses
+  //     res.status(200).json({ canEdit, haveSubmitted });
+  //   } catch (error) {
+  //     console.error("Error in checkStatus:", error);
+  //     res.status(500).json({ error: "Internal Server Error", details: error.message });
+  //   }
+  // },
   async checkStatus(req, res) {
     const { sesa } = req.userData;
 
@@ -99,23 +140,21 @@ const historyController = {
 
       let canEdit = null;
       let haveSubmitted = false;
+      let signed = false;
 
       if (historyData && historyData.length > 0) {
         haveSubmitted = historyData.some((record) => record.status === "submitted");
 
         const signedRecord = historyData.find((record) => record.status === "signed");
 
-        // Set canEdit based on whether a signed record exists and if the user is authorized
         if (signedRecord) {
+          signed = true;
           canEdit = signedRecord.created_by === sesa;
         }
-      } else {
-        // If no history records are found, canEdit remains null
-        canEdit = null;
       }
 
-      // Return both statuses
-      res.status(200).json({ canEdit, haveSubmitted });
+      // Return both statuses along with signed
+      res.status(200).json({ canEdit, haveSubmitted, signed });
     } catch (error) {
       console.error("Error in checkStatus:", error);
       res.status(500).json({ error: "Internal Server Error", details: error.message });

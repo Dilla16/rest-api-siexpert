@@ -290,6 +290,10 @@ const returModels = {
           a.defect_type,
           a.action,
           a.verification,
+          a.location,
+          a.category,
+          a.images,
+          a.caption,
           p.product_name,
           f.family_name,
           s.sector_name
@@ -333,6 +337,10 @@ const returModels = {
           defect_type: returnData.defect_type,
           action: returnData.action,
           verification: returnData.verification,
+          location: returnData.location,
+          category: returnData.category,
+          images: returnData.images, // Assuming images is a JSON or text field containing image data
+          caption: returnData.caption,
         },
       };
     } catch (error) {
