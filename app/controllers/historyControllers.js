@@ -1,5 +1,6 @@
 const historyModels = require("../models/historyModels");
 const returnModels = require("../models/returnModels");
+const analysisModels = require("../models/analyzeModels");
 
 const historyController = {
   async getHistoryByAnalyseId(req, res) {
@@ -26,7 +27,7 @@ const historyController = {
         statuses.forEach((status) => {
           mostRecentHistory[status] = {};
         });
-        return res.status(200).json(mostRecentHistory);
+        return res.status(200).json({ ...mostRecentHistory, leadTime: null });
       }
 
       // Create an object to store the most relevant record for each status
@@ -59,7 +60,16 @@ const historyController = {
         }
       }
 
-      res.status(200).json(mostRecentHistory);
+      // Calculate lead time from 'created' to 'closed'
+      let leadTime = null;
+      if (mostRecentHistory["created"].created_at && mostRecentHistory["closed"].created_at) {
+        const createdDate = new Date(mostRecentHistory["created"].created_at);
+        const closedDate = new Date(mostRecentHistory["closed"].created_at);
+        const timeDiff = closedDate - createdDate; // Difference in milliseconds
+        leadTime = Math.floor(timeDiff / (1000 * 60 * 60 * 24)); // Convert milliseconds to days
+      }
+
+      res.status(200).json({ ...mostRecentHistory, leadTime });
     } catch (error) {
       console.error("Error in getHistoryByAnalyseId:", error);
       res.status(500).json({ error: "Internal Server Error", details: error.message });
@@ -80,45 +90,6 @@ const historyController = {
       res.status(500).json({ error: error.message });
     }
   },
-  // async checkStatus(req, res) {
-  //   const { sesa } = req.userData;
-
-  //   try {
-  //     // Get the return data based on ID
-  //     const returnData = await returnModels.getReturnById(req.params.id);
-
-  //     // Check if return data or analyze_id is missing
-  //     if (!returnData || !returnData.analysis || !returnData.analysis.analyze_id) {
-  //       return res.status(404).json({ error: "Return data not found or analyze_id is missing" });
-  //     }
-
-  //     const { analyze_id } = returnData.analysis;
-
-  //     // Get history data based on analyze_id
-  //     const historyData = await historyModels.getHistoryByAnalyseId(analyze_id);
-
-  //     let canEdit = null;
-  //     let haveSubmitted = false;
-  //     let signed = false;
-
-  //     if (historyData && historyData.length > 0) {
-  //       haveSubmitted = historyData.some((record) => record.status === "submitted");
-
-  //       const signedRecord = historyData.find((record) => record.status === "signed");
-
-  //       if (signedRecord) {
-  //         signed = true;
-  //         canEdit = signedRecord.created_by === sesa;
-  //       }
-  //     }
-
-  //     // Return both statuses along with signed
-  //     res.status(200).json({ canEdit, haveSubmitted, signed });
-  //   } catch (error) {
-  //     console.error("Error in checkStatus:", error);
-  //     res.status(500).json({ error: "Internal Server Error", details: error.message });
-  //   }
-  // },
   async checkStatus(req, res) {
     const { sesa } = req.userData;
 
@@ -187,7 +158,7 @@ const historyController = {
   },
   async decisionAnalysis(req, res) {
     const { analyze_id } = req.params;
-    const { decision } = req.body;
+    const { decision, comment } = req.body; // Include comment parameter
     const { sesa } = req.userData;
 
     if (!analyze_id || !decision) {
@@ -195,23 +166,22 @@ const historyController = {
     }
 
     try {
-      // Determine the status and create history entries
       let historyEntries = [];
 
       if (decision === "approved") {
         historyEntries = [
-          { analyze_id, status: "approved", created_by: sesa },
-          { analyze_id, status: "closed", created_by: sesa },
+          { analyze_id, status: "approved", created_by: sesa, comment },
+          { analyze_id, status: "closed", created_by: sesa, comment },
         ];
       } else if (decision === "rejected") {
-        historyEntries = [{ analyze_id, status: "rejected", created_by: sesa }];
+        historyEntries = [{ analyze_id, status: "rejected", created_by: sesa, comment }];
       } else {
         return res.status(400).json({ error: "Bad Request", details: "Invalid decision value" });
       }
 
       // Create history entries in the database
       for (const entry of historyEntries) {
-        await historyModels.createHistoryDecision(entry.analyze_id, entry.created_by, entry.status);
+        await historyModels.createHistoryDecision(entry.analyze_id, entry.created_by, entry.status, entry.comment);
       }
 
       res.status(200).json({ message: `Decision ${decision} processed and history created` });

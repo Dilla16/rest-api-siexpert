@@ -50,14 +50,14 @@ const historyModels = {
       throw new Error("Database query failed");
     }
   },
-  async createHistoryDecision(analyze_id, created_by, status) {
+  async createHistoryDecision(analyze_id, created_by, status, comment) {
     try {
       await db.query("BEGIN");
 
       const historyResult = await db.query(
-        `INSERT INTO history (analyse_id, created_at, status, created_by)
-             VALUES ($1, NOW(), $2, $3) RETURNING *`,
-        [analyze_id, status, created_by]
+        `INSERT INTO history (analyze_id, created_by, status, comment, created_at)
+         VALUES ($1, $2, $3, $4, NOW()) RETURNING *`,
+        [analyze_id, created_by, status, comment]
       );
 
       await db.query("COMMIT");
@@ -68,12 +68,13 @@ const historyModels = {
     } catch (error) {
       await db.query("ROLLBACK");
       console.error("Error in createHistoryDecision:", error);
+      throw error; // Ensure the error is thrown so the calling function can handle it
     }
   },
   async getHistoryByAnalyseId(analyse_id) {
     try {
       const result = await db.query(
-        `SELECT history_id, analyse_id, status, created_at, created_by
+        `SELECT history_id, analyse_id, status, comment, created_at, created_by
          FROM history
          WHERE analyse_id = $1
          ORDER BY created_at DESC`,
@@ -85,7 +86,6 @@ const historyModels = {
       throw new Error("Database query failed");
     }
   },
-
   async getStatusByAnalyzeId(analyse_id) {
     try {
       const query = `
