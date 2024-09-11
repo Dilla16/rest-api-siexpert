@@ -168,6 +168,13 @@ const historyController = {
     }
 
     try {
+      const analysisData = await analysisModels.getAnalysisById(analyze_id);
+
+      if (!analysisData || Object.keys(analysisData).length === 0) {
+        return res.status(400).json({ error: "Data Incomplete", details: "Analysis data is required before submission." });
+      }
+
+      // Lanjutkan dengan proses submit jika data analysis ada
       const result = await historyModels.createSubmitAnalysis(analyze_id, sesa, "submitted");
       res.status(200).json(result);
     } catch (error) {
