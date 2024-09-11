@@ -6,6 +6,7 @@ const analyzeControllers = require("../controllers/analyzeControllers");
 const authMiddleware = require("../middleware/auth");
 const historyController = require("../controllers/historyControllers");
 const notificationController = require("../controllers/notificationControllers");
+const statsController = require("../controllers/statsControllers");
 
 const router = express.Router();
 
@@ -47,6 +48,7 @@ router.post("/returns", authMiddleware, returControllers.createReturn);
 router.get("/returns/:id", returControllers.getReturnById);
 router.put("/returns/:id", returControllers.updateReturnById);
 router.delete("/returns/:id", authMiddleware, returControllers.deleteReturnById);
+router.get("/return/stats", authMiddleware, statsController.getReturnStats);
 
 // Analysis
 router.get("/analysis", analyzeControllers.getAllAnalysis);

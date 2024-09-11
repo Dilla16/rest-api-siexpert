@@ -8,17 +8,14 @@ const historyController = {
     const statuses = ["created", "signed", "submitted", "rejected", "approved", "closed"];
 
     try {
-      // Fetch the return data based on the provided id
       const returnData = await returnModels.getReturnById(id);
 
       if (!returnData) {
         return res.status(404).json({ message: "Return not found" });
       }
 
-      // Extract the analyse_id from the returned data
       const analyse_id = returnData.analysis.analyze_id;
 
-      // Fetch all history data based on the analyse_id
       const historyData = await historyModels.getHistoryByAnalyseId(analyse_id);
 
       if (!historyData || historyData.length === 0) {
