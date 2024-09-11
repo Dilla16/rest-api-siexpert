@@ -1,6 +1,53 @@
 const db = require("../../database");
 
 const historyModels = {
+  async getHistory(status) {
+    const query = `
+    WITH LatestStatus AS (
+      SELECT
+        DISTINCT ON (analyse_id) -- Get the latest entry for each analyse_id
+        EXTRACT(YEAR FROM created_at) AS year,
+        EXTRACT(MONTH FROM created_at) AS month,
+        analyse_id,
+        status
+      FROM history
+      WHERE status IN ('created', 'closed', 'submitted')
+      ORDER BY analyse_id, created_at DESC
+    ),
+    StatusByMonth AS (
+      SELECT
+        year,
+        month,
+        status,
+        COUNT(*) AS count
+      FROM LatestStatus
+      GROUP BY year, month, status
+    ),
+    AllMonths AS (
+      SELECT generate_series(1, 12) AS month -- Generates months from 1 to 12
+    )
+    SELECT
+      COALESCE(sb.year, EXTRACT(YEAR FROM CURRENT_DATE)) AS year,
+      am.month,
+      COALESCE(SUM(CASE WHEN sb.status = 'created' THEN sb.count ELSE 0 END), 0) AS created,
+      COALESCE(SUM(CASE WHEN sb.status = 'closed' THEN sb.count ELSE 0 END), 0) AS closed,
+      COALESCE(SUM(CASE WHEN sb.status = 'submitted' THEN sb.count ELSE 0 END), 0) AS submitted
+    FROM AllMonths am
+    LEFT JOIN StatusByMonth sb
+      ON am.month = sb.month
+      AND sb.year = EXTRACT(YEAR FROM CURRENT_DATE) -- Assuming the current year, modify as needed
+    GROUP BY year, am.month
+    ORDER BY year, am.month;
+  `;
+
+    try {
+      const result = await db.query(query);
+      return result.rows;
+    } catch (error) {
+      console.error("Error in getHistory:", error.message || error);
+      throw error; // Re-throw error to handle it at the calling level
+    }
+  },
   async createHistory(data) {
     try {
       const result = await db.query(

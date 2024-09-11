@@ -57,6 +57,8 @@ router.put("/analysis/:id", authMiddleware, analyzeControllers.updateAnalysisByI
 router.delete("/analysis/:id", analyzeControllers.deleteAnalysisById);
 
 // History
+
+router.get("/histories", historyController.getHistory);
 router.get("/history/:id", historyController.getHistoryByAnalyseId);
 router.post("/retur/analysis/assign/:analyze_id", authMiddleware, historyController.assignHistory);
 router.post("/retur/analysis/submitted/:analyze_id", authMiddleware, historyController.submitAnalysis);

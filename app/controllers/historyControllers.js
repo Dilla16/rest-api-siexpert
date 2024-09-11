@@ -3,6 +3,27 @@ const returnModels = require("../models/returnModels");
 const analysisModels = require("../models/analyzeModels");
 
 const historyController = {
+  async getHistory(req, res) {
+    try {
+      const monthlyCounts = await historyModels.getHistory();
+      const response = monthlyCounts.reduce((acc, row) => {
+        const monthName = new Date(row.month + "/01/" + row.year).toLocaleString("default", { month: "short", year: "numeric" });
+        if (!acc[monthName]) {
+          acc[monthName] = { created: 0, closed: 0, submitted: 0 };
+        }
+        acc[monthName].created += row.created;
+        acc[monthName].closed += row.closed;
+        acc[monthName].submitted += row.submitted;
+        return acc;
+      }, {});
+
+      res.status(200).json(response);
+    } catch (error) {
+      console.error("Error in getHistory:", error.message || error);
+      res.status(500).json({ error: "Failed to retrieve history data" });
+    }
+  },
+
   async getHistoryByAnalyseId(req, res) {
     const { id } = req.params;
     const statuses = ["created", "signed", "submitted", "rejected", "approved", "closed"];
