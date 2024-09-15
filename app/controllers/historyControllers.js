@@ -198,7 +198,7 @@ const historyController = {
         return res.status(404).json({ error: "Return data not found or analyze_id is missing" });
       }
 
-      const { analyze_id } = returnData.analysis;
+      const analyze_id = returnData.analysis.analyze_id;
 
       // Fetch status data and history data
       const statusData = await historyModels.getStatusByAnalyzeId(analyze_id);
