@@ -7,6 +7,7 @@ const authMiddleware = require("../middleware/auth");
 const historyController = require("../controllers/historyControllers");
 const notificationController = require("../controllers/notificationControllers");
 const statsController = require("../controllers/statsControllers");
+const imageController = require("../controllers/imageControllers");
 
 const router = express.Router();
 
@@ -55,6 +56,7 @@ router.get("/analysis", analyzeControllers.getAllAnalysis);
 router.get("/analysis/:id", analyzeControllers.getAnalysisById);
 router.put("/analysis/:id", authMiddleware, analyzeControllers.updateAnalysisById);
 router.delete("/analysis/:id", analyzeControllers.deleteAnalysisById);
+router.delete("/analysis/image", imageController.uploadImage);
 
 // History
 

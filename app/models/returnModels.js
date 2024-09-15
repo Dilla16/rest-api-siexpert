@@ -318,6 +318,9 @@ const returModels = {
         retur_no: returnData.retur_no,
         customer_name: returnData.customer_name,
         country: returnData.country,
+        qty: returnData.qty,
+        serial_no: returnData.serial_no,
+        issue: returnData.issue,
         products: {
           product_id: returnData.product_id,
           product_name: returnData.product_name,
@@ -328,9 +331,6 @@ const returModels = {
             },
           },
         },
-        qty: returnData.qty,
-        serial_no: returnData.serial_no,
-        issue: returnData.issue,
         analysis: {
           analyze_id: returnData.analysis_id,
           root_cause: returnData.root_cause,

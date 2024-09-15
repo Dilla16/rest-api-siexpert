@@ -182,17 +182,26 @@ const ReturController = {
   async getReturnById(req, res) {
     try {
       const returnData = await returModels.getReturnById(req.params.id);
-      if (returnData) {
-        res.status(200).json(returnData);
-      } else {
-        res.status(404).json({ message: "Return not found" });
+
+      if (!returnData) {
+        return res.status(404).json({ message: "Return not found" });
       }
+
+      // Fetch the status based on analyze_id
+      const status = await historyModels.getStatusByAnalyzeId(returnData.analysis.analyze_id);
+
+      // Combine returnData with status
+      const response = {
+        returnData,
+        status: status || "Unknown", // default to "Unknown" if no status found
+      };
+
+      res.status(200).json(response);
     } catch (error) {
       console.error("Error in getReturnById:", error);
       res.status(500).json({ error: "Internal Server Error", details: error.message });
     }
   },
-
   async updateReturnById(req, res) {
     const { id } = req.params;
     const { returnData } = req.body; // Assume returnData is sent in the request body

@@ -61,18 +61,62 @@ const historyModels = {
     }
   },
 
-  async getHistoryById(history_id) {
+  async getHistoryById(analyse_id) {
     try {
-      const result = await db.query(
-        `SELECT history_id, analyse_id, status, created_at, created_by
-         FROM history
-         WHERE history_id = $1`,
-        [history_id]
-      );
-      return result.rows[0];
+      const query = `
+        SELECT * 
+        FROM history 
+        WHERE analyse_id = $1 
+        ORDER BY created_at
+      `;
+      const res = await db.query(query, [analyse_id]);
+      const historyData = res.rows;
+
+      // Initialize the response object with empty objects for each status
+      const statuses = ["created", "signed", "submitted", "rejected", "approved", "closed"];
+      const mostRecentHistory = {};
+      statuses.forEach((status) => {
+        mostRecentHistory[status] = {};
+      });
+
+      // Separate records for 'created' and other statuses
+      const createdRecords = historyData.filter((record) => record.status === "created");
+      const otherRecords = historyData.filter((record) => record.status !== "created");
+
+      // Find the oldest record for the 'created' status
+      if (createdRecords.length > 0) {
+        const oldestRecord = createdRecords.reduce((oldest, record) => {
+          return new Date(record.created_at) < new Date(oldest.created_at) ? record : oldest;
+        });
+        mostRecentHistory["created"] = oldestRecord;
+      }
+
+      // Find the most recent record for all other statuses
+      statuses
+        .filter((status) => status !== "created")
+        .forEach((status) => {
+          const recordsForStatus = otherRecords.filter((record) => record.status === status);
+          if (recordsForStatus.length > 0) {
+            const latestRecord = recordsForStatus.reduce((latest, record) => {
+              return new Date(record.created_at) > new Date(latest.created_at) ? record : latest;
+            });
+            mostRecentHistory[status] = latestRecord;
+          }
+        });
+
+      // Calculate lead time from 'created' to 'closed'
+      let leadTime = null;
+      if (mostRecentHistory["created"].created_at && mostRecentHistory["closed"].created_at) {
+        const createdDate = new Date(mostRecentHistory["created"].created_at);
+        const closedDate = new Date(mostRecentHistory["closed"].created_at);
+        const timeDiff = closedDate - createdDate; // Difference in milliseconds
+        leadTime = Math.floor(timeDiff / (1000 * 60 * 60 * 24)); // Convert milliseconds to days
+      }
+
+      return { ...mostRecentHistory, leadTime };
     } catch (error) {
-      console.error("Error in getHistoryById:", error);
-      throw new Error("Database query failed");
+      console.error("Error fetching history by analyse_id:", error);
+      throw error;
     }
   },
 
@@ -161,6 +205,64 @@ const historyModels = {
       return result.rows[0]; // Return the newly created history record
     } catch (error) {
       console.error("Error creating submit analysis history:", error);
+      throw error;
+    }
+  },
+  async getHistoryById(analyse_id) {
+    try {
+      const query = `
+        SELECT * 
+        FROM history 
+        WHERE analyse_id = $1 
+        ORDER BY created_at
+      `;
+      const res = await db.query(query, [analyse_id]);
+      const historyData = res.rows;
+
+      // Initialize the response object with empty objects for each status
+      const statuses = ["created", "signed", "submitted", "rejected", "approved", "closed"];
+      const mostRecentHistory = {};
+      statuses.forEach((status) => {
+        mostRecentHistory[status] = {};
+      });
+
+      // Separate records for 'created' and other statuses
+      const createdRecords = historyData.filter((record) => record.status === "created");
+      const otherRecords = historyData.filter((record) => record.status !== "created");
+
+      // Find the oldest record for the 'created' status
+      if (createdRecords.length > 0) {
+        const oldestRecord = createdRecords.reduce((oldest, record) => {
+          return new Date(record.created_at) < new Date(oldest.created_at) ? record : oldest;
+        });
+        mostRecentHistory["created"] = oldestRecord;
+      }
+
+      // Find the most recent record for all other statuses
+      statuses
+        .filter((status) => status !== "created")
+        .forEach((status) => {
+          const recordsForStatus = otherRecords.filter((record) => record.status === status);
+          if (recordsForStatus.length > 0) {
+            const latestRecord = recordsForStatus.reduce((latest, record) => {
+              return new Date(record.created_at) > new Date(latest.created_at) ? record : latest;
+            });
+            mostRecentHistory[status] = latestRecord;
+          }
+        });
+
+      // Calculate lead time from 'created' to 'closed'
+      let leadTime = null;
+      if (mostRecentHistory["created"].created_at && mostRecentHistory["closed"].created_at) {
+        const createdDate = new Date(mostRecentHistory["created"].created_at);
+        const closedDate = new Date(mostRecentHistory["closed"].created_at);
+        const timeDiff = closedDate - createdDate; // Difference in milliseconds
+        leadTime = Math.floor(timeDiff / (1000 * 60 * 60 * 24)); // Convert milliseconds to days
+      }
+
+      return { ...mostRecentHistory, leadTime };
+    } catch (error) {
+      console.error("Error fetching history by analyze_id:", error);
       throw error;
     }
   },

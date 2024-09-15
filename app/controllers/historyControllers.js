@@ -108,52 +108,163 @@ const historyController = {
       res.status(500).json({ error: error.message });
     }
   },
+
+  // async checkStatus(req, res) {
+  //   const { sesa } = req.userData;
+
+  //   try {
+  //     const returnData = await returnModels.getReturnById(req.params.id);
+
+  //     if (!returnData || !returnData.analysis || !returnData.analysis.analyze_id) {
+  //       return res.status(404).json({ error: "Return data not found or analyze_id is missing" });
+  //     }
+
+  //     const { analyze_id } = returnData.analysis;
+
+  //     const statusData = await historyModels.getStatusByAnalyzeId(analyze_id);
+
+  //     const historyData = historyModels.getHistoryById(analyze_id);
+
+  //     let canEdit = null;
+  //     let haveSubmitted = false;
+  //     let signed = false;
+  //     let approved = false;
+  //     let rejected = false;
+
+  //     if (historyData.signed) {
+  //       canEdit = historyData.signed.created_by === sesa;
+  //     }
+
+  //     if (statusData) {
+  //       const status = statusData;
+
+  //       if (status === "created") {
+  //         haveSubmitted = false;
+  //         approved = false;
+  //         rejected = false;
+  //       } else if (status === "signed") {
+  //         signed = true;
+  //         haveSubmitted = false;
+  //         approved = false;
+  //         rejected = false;
+  //       } else if (status === "submitted") {
+  //         signed = true;
+  //         haveSubmitted = true;
+  //         approved = false;
+  //         rejected = false;
+  //       } else if (status === "rejected") {
+  //         signed = true;
+  //         haveSubmitted = false;
+  //         approved = false;
+  //         rejected = true;
+  //       } else if (status === "closed") {
+  //         signed = true;
+  //         haveSubmitted = true;
+  //         approved = true;
+  //       }
+
+  //       // Return the response
+  //       res.status(200).json({
+  //         canEdit,
+  //         haveSubmitted,
+  //         signed,
+  //         approved,
+  //         rejected,
+  //         status,
+  //       });
+  //     } else {
+  //       // Handle case where no status is found
+  //       res.status(200).json({
+  //         canEdit,
+  //         haveSubmitted,
+  //         signed,
+  //         approved,
+  //         rejected,
+  //         status: "Unknown",
+  //       });
+  //     }
+  //   } catch (error) {
+  //     console.error("Error in checkStatus:", error);
+  //     res.status(500).json({ error: "Internal Server Error", details: error.message });
+  //   }
+  // },
   async checkStatus(req, res) {
     const { sesa } = req.userData;
 
     try {
-      // Get the return data based on ID
       const returnData = await returnModels.getReturnById(req.params.id);
 
-      // Check if return data or analyze_id is missing
       if (!returnData || !returnData.analysis || !returnData.analysis.analyze_id) {
         return res.status(404).json({ error: "Return data not found or analyze_id is missing" });
       }
 
       const { analyze_id } = returnData.analysis;
 
-      // Get history data based on analyze_id
-      const historyData = await historyModels.getHistoryByAnalyseId(analyze_id);
+      // Fetch status data and history data
+      const statusData = await historyModels.getStatusByAnalyzeId(analyze_id);
+      const historyData = await historyModels.getHistoryById(analyze_id);
 
-      let canEdit = null;
+      // Initialize status flags
+      let canEdit = false;
       let haveSubmitted = false;
       let signed = false;
       let approved = false;
       let rejected = false;
+      let status = statusData;
 
-      if (historyData && historyData.length > 0) {
-        haveSubmitted = historyData.some((record) => record.status === "submitted");
+      // Determine if editing is allowed based on signed data
+      if (historyData && historyData.signed) {
+        canEdit = historyData.signed.created_by === sesa;
+      }
 
-        const signedRecord = historyData.find((record) => record.status === "signed");
-
-        if (signedRecord) {
-          signed = true;
-          canEdit = signedRecord.created_by === sesa;
-        }
-
-        // Determine approved and rejected statuses
-        approved = historyData.some((record) => record.status === "approved");
-        rejected = historyData.some((record) => record.status === "rejected");
-
-        if (approved && !rejected) {
-          rejected = false;
-        } else if (rejected && !approved) {
-          approved = false;
+      // Determine status and flags based on statusData
+      if (statusData) {
+        switch (status) {
+          case "created":
+            haveSubmitted = false;
+            signed = false;
+            approved = false;
+            rejected = false;
+            break;
+          case "signed":
+            signed = true;
+            haveSubmitted = false;
+            approved = false;
+            rejected = false;
+            break;
+          case "submitted":
+            signed = true;
+            haveSubmitted = true;
+            approved = false;
+            rejected = false;
+            break;
+          case "rejected":
+            signed = true;
+            haveSubmitted = false;
+            approved = false;
+            rejected = true;
+            break;
+          case "closed":
+            signed = true;
+            haveSubmitted = true;
+            approved = true;
+            rejected = false;
+            break;
+          default:
+            status;
+            break;
         }
       }
 
-      // Return both statuses along with signed
-      res.status(200).json({ canEdit, haveSubmitted, signed, approved, rejected });
+      // Return the response
+      res.status(200).json({
+        canEdit,
+        haveSubmitted,
+        signed,
+        approved,
+        rejected,
+        status,
+      });
     } catch (error) {
       console.error("Error in checkStatus:", error);
       res.status(500).json({ error: "Internal Server Error", details: error.message });
