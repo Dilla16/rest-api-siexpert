@@ -99,7 +99,7 @@ const UserModel = {
     const query = `
         SELECT sesa 
         FROM users 
-        WHERE $1 = ANY(sector) 
+        WHERE department $1 = ANY(sector) 
           AND role = 'user'
     `;
     const values = [sector];
@@ -107,13 +107,12 @@ const UserModel = {
       const result = await db.query(query, values);
 
       if (!result.rows.length) {
-        throw new Error("No users found for the given department");
+        console.error("No users found for the given department");
       }
 
       return result.rows;
     } catch (error) {
       console.error("Error in getUsersByDepartment:", error.message || error);
-      throw new Error("Database query failed");
     }
   },
 };
