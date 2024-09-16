@@ -97,20 +97,22 @@ const UserModel = {
   },
   async getUsersByDepartment(sector) {
     const query = `
-        SELECT sesa 
-        FROM users 
-        WHERE department $1 = ANY(sector) 
-          AND role = 'user'
+      SELECT sesa, name, email 
+      FROM users
+      WHERE department = $1
+        AND role = 'user'
     `;
     const values = [sector];
+
     try {
       const result = await db.query(query, values);
 
       if (!result.rows.length) {
-        console.error("No users found for the given department");
+        console.warn(`No users found for the department: ${sector}`);
+        return [];
       }
 
-      return result.rows;
+      return result.rows; // Return an array of users with `sesa`, `name`, and `email`
     } catch (error) {
       console.error("Error in getUsersByDepartment:", error.message || error);
     }
