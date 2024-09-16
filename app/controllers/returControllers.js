@@ -201,10 +201,6 @@ const ReturController = {
       return res.status(400).json({ error: "Bad Request", details: "All fields are required and must not be empty!" });
     }
 
-    if (retur_no.length > 100 || customer_name.length > 100 || country.length > 100) {
-      return res.status(400).json({ error: "Bad Request", details: "Field length exceeds allowed limit" });
-    }
-
     try {
       await returModels.beginTransaction();
 
@@ -215,14 +211,12 @@ const ReturController = {
       }
       const product_id = product.product_id;
 
-      // Fetch department based on sector
       const department = await productModels.getDepartmentBySector(sector);
       if (!department) {
         await returModels.rollbackTransaction();
         return res.status(404).json({ error: "Not Found", details: "Department for the sector not found" });
       }
 
-      // Fetch users by department
       const users = await userModels.getUsersByDepartment(department);
 
       const returnResponses = [];
@@ -300,7 +294,6 @@ const ReturController = {
 
       await returModels.commitTransaction();
 
-      // Fetch all analyses after committing
       const extendedAnalyses = await Promise.all(
         analysisIds.map(async (id) => {
           const analysis = await analyzeModels.getAnalysisById(id);
