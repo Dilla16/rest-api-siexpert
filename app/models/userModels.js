@@ -85,6 +85,37 @@ const UserModel = {
       throw new Error("Database query failed");
     }
   },
+  async getUsersByRole(role) {
+    try {
+      // Fetch users by their role
+      const result = await db.query(`SELECT sesa FROM users WHERE role = $1`, [role]);
+      return result.rows;
+    } catch (error) {
+      console.error("Error fetching users by role:", error);
+      throw error;
+    }
+  },
+  async getUsersByDepartment(department) {
+    const query = `
+        SELECT sesa 
+        FROM users 
+        WHERE $1 = ANY(department) 
+          AND role = 'user'
+    `;
+    const values = [department];
+    try {
+      const result = await db.query(query, values);
+
+      if (!result.rows.length) {
+        throw new Error("No users found for the given department");
+      }
+
+      return result.rows;
+    } catch (error) {
+      console.error("Error in getUsersByDepartment:", error.message || error);
+      throw new Error("Database query failed");
+    }
+  },
 };
 
 module.exports = UserModel;

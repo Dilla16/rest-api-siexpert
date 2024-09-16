@@ -5,7 +5,7 @@ const returControllers = require("../controllers/returControllers");
 const analyzeControllers = require("../controllers/analyzeControllers");
 const authMiddleware = require("../middleware/auth");
 const historyController = require("../controllers/historyControllers");
-const notificationController = require("../controllers/notificationControllers");
+const notificationControllers = require("../controllers/notificationControllers");
 const statsController = require("../controllers/statsControllers");
 const imageController = require("../controllers/imageControllers");
 
@@ -68,6 +68,8 @@ router.post("/retur/analysis/decision/:analyze_id", authMiddleware, historyContr
 router.get("/retur/analysis/status/:id", authMiddleware, historyController.checkStatus);
 
 // Notifications
-router.get("/notifications/:sesa", authMiddleware, notificationController.getUserNotifications);
+router.get("/notifications/:sesa", authMiddleware, notificationControllers.getUserNotifications);
+router.put("/notifications/:notification_id/read", authMiddleware, notificationControllers.markNotificationAsRead);
+router.post("/notifications", authMiddleware, notificationControllers.createNotification);
 
 module.exports = router;

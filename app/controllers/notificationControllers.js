@@ -1,30 +1,39 @@
-const notificationModels = require("../models/returnModels");
+const notificationModels = require("../models/notificationModels");
 
 const notificationController = {
+  // Mendapatkan notifikasi user berdasarkan SESA ID
   async getUserNotifications(req, res) {
-    const { sesa } = req.params;
-    const { userRole } = req.userData; // Assuming userRole is available from user data
-
-    if (!sesa) {
-      return res.status(400).json({ error: "Bad Request", details: "User ID is required" });
-    }
+    const { sesa } = req.params; // Mengambil SESA ID dari URL parameter
 
     try {
-      let notifications = [];
-
-      // Fetch notifications based on userRole
-      if (userRole === "User") {
-        notifications = await notificationModels.getNotificationsForUser(sesa);
-      } else if (userRole === "Engineer") {
-        notifications = await notificationModels.getNotificationsForEngineer(sesa);
-      } else {
-        return res.status(403).json({ error: "Forbidden", details: "Invalid user role" });
-      }
-
-      res.status(200).json({ notifications });
+      const notifications = await notificationModels.getAllNotificationsForUser(sesa);
+      res.status(200).json(notifications);
     } catch (error) {
-      console.error("Error fetching notifications:", error);
-      res.status(500).json({ error: "Internal Server Error", details: error.message });
+      res.status(500).json({ error: "Error fetching notifications" });
+    }
+  },
+
+  // Menandai notifikasi sebagai sudah dibaca berdasarkan notification_id
+  async markNotificationAsRead(req, res) {
+    const { notification_id } = req.params; // Mengambil notification_id dari URL parameter
+
+    try {
+      await notificationModels.markAsRead(notification_id);
+      res.status(200).json({ message: "Notification marked as read" });
+    } catch (error) {
+      res.status(500).json({ error: "Error marking notification as read" });
+    }
+  },
+
+  // Menambahkan notifikasi baru
+  async createNotification(req, res) {
+    const { history_id, sesa } = req.body; // Mengambil data dari body request
+
+    try {
+      const newNotification = await notificationModels.addNotification(history_id, sesa);
+      res.status(201).json(newNotification);
+    } catch (error) {
+      res.status(500).json({ error: "Error creating notification" });
     }
   },
 };

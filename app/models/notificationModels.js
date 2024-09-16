@@ -1,19 +1,19 @@
-const db = require("../db"); // Adjust according to your actual database module
+const db = require("../../database");
 
 const notificationModels = {
-  async getNotificationsForUser(sesa) {
+  // Mendapatkan semua notifikasi untuk user berdasarkan SESA ID
+  async getAllNotificationsForUser(sesa) {
     try {
-      // Fetch history entries for the user with statuses: created, approved, rejected
       const result = await db.query(
         `
-        SELECT * FROM history
-        WHERE created_by = $1
-        AND status IN ('created', 'approved', 'rejected')
-        ORDER BY created_at DESC
+        SELECT n.id, n.history_id, h.status, h.created_at, h.comment, n.is_read 
+        FROM notifications n
+        JOIN history h ON n.history_id = h.history_id
+        WHERE n.sesa = $1
+        ORDER BY h.created_at DESC;
       `,
         [sesa]
       );
-
       return result.rows;
     } catch (error) {
       console.error("Error fetching notifications for user:", error);
@@ -21,22 +21,36 @@ const notificationModels = {
     }
   },
 
-  async getNotificationsForEngineer(sesa) {
+  // Menandai notifikasi sebagai sudah dibaca
+  async markAsRead(notification_id) {
     try {
-      // Fetch history entries for the engineer with status: submitted
+      await db.query(
+        `
+        UPDATE notifications
+        SET is_read = true
+        WHERE id = $1;
+      `,
+        [notification_id]
+      );
+    } catch (error) {
+      console.error("Error marking notification as read:", error);
+      throw error;
+    }
+  },
+
+  async addNotification(history_id, sesa) {
+    try {
       const result = await db.query(
         `
-        SELECT * FROM history
-        WHERE created_by = $1
-        AND status = 'submitted'
-        ORDER BY created_at DESC
+        INSERT INTO notifications (history_id, sesa, is_read)
+        VALUES ($1, $2, false)
+        RETURNING *;
       `,
-        [sesa]
+        [history_id, sesa]
       );
-
-      return result.rows;
+      return result.rows[0];
     } catch (error) {
-      console.error("Error fetching notifications for engineer:", error);
+      console.error("Error adding new notification:", error);
       throw error;
     }
   },

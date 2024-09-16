@@ -3,6 +3,7 @@ const historyModels = require("../models/historyModels");
 const productModels = require("../models/productModels");
 const analyzeModels = require("../models/analyzeModels");
 const userModels = require("./../models/userModels");
+const notificationModels = require("../models/notificationModels");
 
 const ReturController = {
   async getAllReturns(req, res) {
@@ -40,6 +41,152 @@ const ReturController = {
     }
   },
 
+  // async createReturn(req, res) {
+  //   const { returnData } = req.body;
+  //   const { sesa } = req.userData;
+
+  //   if (!returnData) {
+  //     return res.status(400).json({ error: "Bad Request", details: "Return data is required" });
+  //   }
+
+  //   const { retur_no, customer_name, country, product_name, serial_no } = returnData;
+
+  //   if (!retur_no || !customer_name || !country || !product_name || !serial_no || serial_no.length === 0) {
+  //     return res.status(400).json({ error: "Bad Request", details: "All fields are required! must not be empty!" });
+  //   }
+
+  //   if (retur_no.length > 100 || customer_name.length > 100 || country.length > 100) {
+  //     return res.status(400).json({ error: "Bad Request", details: "Field length exceeds allowed limit" });
+  //   }
+
+  //   try {
+  //     await returModels.beginTransaction();
+
+  //     const product = await productModels.getProductByName(product_name);
+  //     if (!product) {
+  //       await returModels.rollbackTransaction();
+  //       return res.status(404).json({ error: "Not Found", details: "Product not found" });
+  //     }
+  //     const product_id = product.product_id;
+
+  //     const returnResponses = [];
+  //     const analysisIds = [];
+
+  //     for (const serialIssue of serial_no) {
+  //       const { serial_no, issue } = serialIssue;
+
+  //       const existingReturn = await returModels.checkSerialNo(serial_no);
+  //       if (existingReturn) {
+  //         await returModels.rollbackTransaction();
+  //         return res.status(400).json({ error: "Error", details: `Serial No. ${serial_no} Already Exists` });
+  //       }
+
+  //       // Generate unique analysis ID for each serial issue
+  //       const lastAnalyzeId = await analyzeModels.getLastAnalyzeId();
+  //       let nextId = 1;
+  //       if (lastAnalyzeId) {
+  //         const lastNumber = parseInt(lastAnalyzeId.replace("AN", ""), 10);
+  //         nextId = lastNumber + 1;
+  //       }
+  //       const newAnalyseId = `AN${nextId.toString().padStart(6, "0")}`;
+
+  //       // Create analysis with generated analyze_id
+  //       const analysisData = {
+  //         analyze_id: newAnalyseId,
+  //         verification: null,
+  //         root_cause: null,
+  //         defect_type: null,
+  //         action: null,
+  //       };
+  //       const newAnalysis = await analyzeModels.createAnalysis(analysisData);
+  //       console.log("New analysis created:", newAnalysis);
+
+  //       analysisIds.push(newAnalyseId);
+
+  //       // Create return record
+  //       const newReturn = await returModels.createReturn({
+  //         retur_no,
+  //         customer_name,
+  //         country,
+  //         product_id,
+  //         qty: 1, // Each serial issue is considered as one return
+  //         serial_no,
+  //         issue,
+  //         analyse_id: newAnalyseId,
+  //       });
+  //       console.log("New return created:", newReturn);
+
+  //       await historyModels.createHistory({
+  //         analyse_id: newAnalyseId,
+  //         status: "created",
+  //         created_by: sesa,
+  //         created_at: new Date(),
+  //       });
+
+  //       returnResponses.push({
+  //         ...newReturn,
+  //         analysis_id: newAnalyseId,
+  //       });
+  //     }
+
+  //     const users = await userModels.getUsersByRole("user");
+  //     for (const user of users) {
+  //       for (const analysisId of analysisIds) {
+  //         await notificationModels.addNotification(analysisId, user.sesa);
+  //       }
+  //     }
+
+  //     await returModels.commitTransaction();
+
+  //     // Fetch all analyses after committing
+  //     const extendedAnalyses = await Promise.all(
+  //       analysisIds.map(async (id) => {
+  //         const analysis = await analyzeModels.getAnalysisById(id);
+  //         if (!analysis) {
+  //           console.warn(`Analysis not found for analyze_id: ${id}`);
+  //           return { analyze_id: id, root_cause: null, defect_type: null, action: null, verification: null };
+  //         }
+  //         return analysis;
+  //       })
+  //     );
+
+  //     const responseData = {
+  //       returnData: returnResponses.map((returnRecord) => {
+  //         const analysis = extendedAnalyses.find((a) => a.analyze_id === returnRecord.analysis_id) || {
+  //           analyze_id: returnRecord.analysis_id,
+  //           root_cause: null,
+  //           defect_type: null,
+  //           action: null,
+  //           verification: null,
+  //         };
+  //         return {
+  //           retur_id: returnRecord.retur_id,
+  //           retur_no: returnRecord.retur_no,
+  //           customer_name: returnRecord.customer_name,
+  //           country: returnRecord.country,
+  //           product_name,
+  //           qty: returnRecord.qty,
+  //           serial_no: returnRecord.serial_no,
+  //           issue: returnRecord.issue,
+  //           analysis: {
+  //             analyze_id: analysis.analyze_id,
+  //             root_cause: analysis.root_cause,
+  //             defect_type: analysis.defect_type,
+  //             action: analysis.action,
+  //             verification: analysis.verification,
+  //           },
+  //         };
+  //       }),
+  //     };
+
+  //     res.status(201).json(responseData);
+  //   } catch (error) {
+  //     console.error("Error in createReturn:", error);
+  //     // Rollback transaction in case of error
+  //     await returModels.rollbackTransaction();
+  //     res.status(500).json({ error: "Internal Server Error", details: error.message });
+  //   }
+  // },
   async createReturn(req, res) {
     const { returnData } = req.body;
     const { sesa } = req.userData;
@@ -48,10 +195,10 @@ const ReturController = {
       return res.status(400).json({ error: "Bad Request", details: "Return data is required" });
     }
 
-    const { retur_no, customer_name, country, product_name, serial_issues } = returnData;
+    const { retur_no, customer_name, country, product_name, serial_issues, sector } = returnData;
 
     if (!retur_no || !customer_name || !country || !product_name || !serial_issues || serial_issues.length === 0) {
-      return res.status(400).json({ error: "Bad Request", details: "All fields are required and serial_issues must not be empty" });
+      return res.status(400).json({ error: "Bad Request", details: "All fields are required and must not be empty!" });
     }
 
     if (retur_no.length > 100 || customer_name.length > 100 || country.length > 100) {
@@ -68,16 +215,32 @@ const ReturController = {
       }
       const product_id = product.product_id;
 
+      // Fetch department based on sector
+      const department = await productModels.getDepartmentBySector(sector);
+      if (!department) {
+        await returModels.rollbackTransaction();
+        return res.status(404).json({ error: "Not Found", details: "Department for the sector not found" });
+      }
+
+      // Fetch users by department
+      const users = await userModels.getUsersByDepartment(department);
+
       const returnResponses = [];
       const analysisIds = [];
 
       for (const serialIssue of serial_issues) {
         const { serial_no, issue } = serialIssue;
 
+        if (!serial_no || !issue) {
+          await returModels.rollbackTransaction();
+          return res.status(400).json({ error: "Bad Request", details: "Serial number and issue must not be empty!" });
+        }
+
+        // Check if the serial number already exists
         const existingReturn = await returModels.checkSerialNo(serial_no);
         if (existingReturn) {
           await returModels.rollbackTransaction();
-          return res.status(400).json({ error: "Error", details: `Serial No. ${serial_no} Already Exists` });
+          return res.status(400).json({ error: "Error", details: `Serial No. ${serial_no} already exists` });
         }
 
         // Generate unique analysis ID for each serial issue
@@ -124,8 +287,15 @@ const ReturController = {
 
         returnResponses.push({
           ...newReturn,
-          analysis_id: newAnalyseId, // Include analysis_id in the response
+          analysis_id: newAnalyseId,
         });
+      }
+
+      // Create notifications for all users in the department
+      for (const user of users) {
+        for (const analysisId of analysisIds) {
+          await notificationModels.addNotification(analysisId, user.sesa);
+        }
       }
 
       await returModels.commitTransaction();

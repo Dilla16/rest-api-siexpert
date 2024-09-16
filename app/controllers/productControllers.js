@@ -245,6 +245,22 @@ const productControllers = {
       res.status(500).json({ error: "Internal server error" });
     }
   },
+  async getDepartmentBySector(sector) {
+    const query = "SELECT sector_id FROM sectors WHERE sector = $1";
+    const values = [sector];
+    try {
+      const result = await db.query(query, values);
+
+      if (!result.rows.length || !result.rows[0].department) {
+        throw new Error("Department not found for the given sector");
+      }
+
+      return result.rows[0].department;
+    } catch (error) {
+      console.error("Error in getDepartmentBySector:", error.message || error);
+      throw new Error("Database query failed");
+    }
+  },
 };
 
 module.exports = productControllers;
