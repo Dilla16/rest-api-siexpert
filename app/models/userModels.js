@@ -95,14 +95,14 @@ const UserModel = {
       throw error;
     }
   },
-  async getUsersByDepartment(department) {
+  async getUsersByDepartment(sector) {
     const query = `
         SELECT sesa 
         FROM users 
-        WHERE $1 = ANY(department) 
+        WHERE $1 = ANY(sector) 
           AND role = 'user'
     `;
-    const values = [department];
+    const values = [sector];
     try {
       const result = await db.query(query, values);
 

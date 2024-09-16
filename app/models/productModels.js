@@ -210,21 +210,6 @@ const productModels = {
     const result = await db.query(`DELETE FROM products WHERE product_id = $1 RETURNING *`, [product_id]);
     return result.rowCount > 0;
   },
-  async getDepartmentBySector(sector) {
-    const query = "SELECT sector_id FROM sectors WHERE sector = $1";
-    const values = [sector];
-    try {
-      const result = await db.query(query, values);
-
-      if (!result.rows.length || !result.rows[0].department) {
-        throw new Error("Department not found for the given sector");
-      }
-
-      return result.rows[0].department;
-    } catch (error) {
-      console.error("Error in getDepartmentBySector:", error.message || error);
-    }
-  },
 };
 
 module.exports = productModels;

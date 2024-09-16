@@ -211,13 +211,7 @@ const ReturController = {
       }
       const product_id = product.product_id;
 
-      const department = await productModels.getDepartmentBySector(sector);
-      if (!department) {
-        await returModels.rollbackTransaction();
-        return res.status(404).json({ error: "Not Found", details: "Department for the sector not found" });
-      }
-
-      const users = await userModels.getUsersByDepartment(department);
+      const users = await userModels.getUsersByDepartment(sector);
 
       const returnResponses = [];
       const analysisIds = [];
