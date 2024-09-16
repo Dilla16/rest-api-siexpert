@@ -223,7 +223,6 @@ const productModels = {
       return result.rows[0].department;
     } catch (error) {
       console.error("Error in getDepartmentBySector:", error.message || error);
-      throw new Error("Database query failed");
     }
   },
 };
