@@ -13,7 +13,6 @@ const analyzeModels = {
       return result.rows[0];
     } catch (error) {
       console.error("Error in createAnalysis:", error);
-      throw new Error("Database query failed");
     }
   },
 

@@ -109,7 +109,6 @@ const returModels = {
       return result.rows.length > 0;
     } catch (error) {
       console.error("Error in checkSerialNo:", error.message || error);
-      throw new Error("Database query failed");
     }
   },
 

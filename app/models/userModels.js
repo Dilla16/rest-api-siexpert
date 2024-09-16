@@ -96,23 +96,16 @@ const UserModel = {
     }
   },
   async getUsersByDepartment(sector) {
-    const query = `
-      SELECT sesa, name, email 
-      FROM users
+    try {
+      const result = await db.query(
+        `SELECT sesa FROM users
       WHERE department = $1
         AND role = 'user'
-    `;
-    const values = [sector];
-
-    try {
-      const result = await db.query(query, values);
-
-      if (!result.rows.length) {
-        console.warn(`No users found for the department: ${sector}`);
-        return [];
-      }
-
-      return result.rows; // Return an array of users with `sesa`, `name`, and `email`
+    
+       VALUES ($1) RETURNING sesa`,
+        [sector]
+      );
+      return result.rows[0];
     } catch (error) {
       console.error("Error in getUsersByDepartment:", error.message || error);
     }
