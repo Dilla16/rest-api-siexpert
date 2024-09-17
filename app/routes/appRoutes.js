@@ -68,7 +68,7 @@ router.post("/retur/analysis/decision/:analyze_id", authMiddleware, historyContr
 router.get("/retur/analysis/status/:id", authMiddleware, historyController.checkStatus);
 
 // Notifications
-router.get("/notifications/:sesa", authMiddleware, notificationControllers.getUserNotifications);
+router.get("/notifications/:sesa", notificationControllers.getUserNotifications);
 router.put("/notifications/:notification_id/read", authMiddleware, notificationControllers.markNotificationAsRead);
 router.post("/notifications", authMiddleware, notificationControllers.createNotification);
 
