@@ -12,7 +12,7 @@ const analyzeModels = {
       );
       return result.rows[0];
     } catch (error) {
-      console.error("Error in createAnalysis:", error);
+      console.error("Error in create Analysis:", error);
     }
   },
 

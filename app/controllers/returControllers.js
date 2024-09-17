@@ -211,10 +211,12 @@ const ReturController = {
       }
       const product_id = product.product_id;
 
-      const users = await userModels.getUsersByDepartment(sector);
+      const usersSesaArray = await userModels.getUsersByDepartment(sector);
 
       const returnResponses = [];
       const analysisIds = [];
+      const historyIds = []; // Array to store generated history IDs
+      const returIds = []; // Array to store generated return IDs
 
       for (const serialIssue of serial_issues) {
         const { serial_no, issue } = serialIssue;
@@ -224,14 +226,12 @@ const ReturController = {
           return res.status(400).json({ error: "Bad Request", details: "Serial number and issue must not be empty!" });
         }
 
-        // Check if the serial number already exists
         const existingReturn = await returModels.checkSerialNo(serial_no);
         if (existingReturn) {
           await returModels.rollbackTransaction();
           return res.status(400).json({ error: "Error", details: `Serial No. ${serial_no} already exists` });
         }
 
-        // Generate unique analysis ID for each serial issue
         const lastAnalyzeId = await analyzeModels.getLastAnalyzeId();
         let nextId = 1;
         if (lastAnalyzeId) {
@@ -240,7 +240,6 @@ const ReturController = {
         }
         const newAnalyseId = `AN${nextId.toString().padStart(6, "0")}`;
 
-        // Create analysis with generated analyze_id
         const analysisData = {
           analyze_id: newAnalyseId,
           verification: null,
@@ -248,8 +247,7 @@ const ReturController = {
           defect_type: null,
           action: null,
         };
-        const newAnalysis = await analyzeModels.createAnalysis(analysisData);
-        console.log("New analysis created:", newAnalysis);
+        await analyzeModels.createAnalysis(analysisData);
 
         analysisIds.push(newAnalyseId);
 
@@ -259,19 +257,22 @@ const ReturController = {
           customer_name,
           country,
           product_id,
-          qty: 1, // Each serial issue is considered as one return
+          qty: 1,
           serial_no,
           issue,
           analyse_id: newAnalyseId,
         });
-        console.log("New return created:", newReturn);
 
-        await historyModels.createHistory({
+        returIds.push(newReturn.retur_id); // Collect return IDs
+
+        const historyId = await historyModels.createHistory({
           analyse_id: newAnalyseId,
           status: "created",
           created_by: sesa,
           created_at: new Date(),
         });
+
+        historyIds.push(historyId);
 
         returnResponses.push({
           ...newReturn,
@@ -280,11 +281,7 @@ const ReturController = {
       }
 
       // Create notifications for all users in the department
-      for (const user of users) {
-        for (const analysisId of analysisIds) {
-          await notificationModels.addNotification(analysisId, user.sesa);
-        }
-      }
+      await Promise.all(usersSesaArray.flatMap((userSesa) => historyIds.flatMap((historyId) => returIds.map((returId) => notificationModels.addNotification(historyId, userSesa, returId)))));
 
       await returModels.commitTransaction();
 
@@ -331,7 +328,6 @@ const ReturController = {
       res.status(201).json(responseData);
     } catch (error) {
       console.error("Error in createReturn:", error);
-      // Rollback transaction in case of error
       await returModels.rollbackTransaction();
       res.status(500).json({ error: "Internal Server Error", details: error.message });
     }

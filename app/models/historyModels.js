@@ -48,16 +48,45 @@ const historyModels = {
       throw error; // Re-throw error to handle it at the calling level
     }
   },
+  // async createHistory(data) {
+  //   try {
+  //     const result = await db.query(
+  //       `INSERT INTO history (analyse_id, status, created_at, created_by)
+  //        VALUES ($1, $2, $3, $4) RETURNING history_id`,
+  //       [data.analyse_id, data.status, data.created_at, data.created_by]
+  //     );
+  //     return result.rows[0];
+  //   } catch (error) {
+  //     console.error("Error in create History:", error);
+  //   }
+  // },
+
   async createHistory(data) {
     try {
-      const result = await db.query(
-        `INSERT INTO history (analyse_id, status, created_at, created_by)
-         VALUES ($1, $2, $3, $4) RETURNING history_id`,
-        [data.analyse_id, data.status, data.created_at, data.created_by]
+      // Inline the logic of getNextHistoryId within createHistory
+      const result = await db.query(`SELECT history_id FROM history ORDER BY history_id DESC LIMIT 1`);
+
+      let newHistoryId;
+      if (result.rows.length === 0) {
+        newHistoryId = "HT000001"; // Starting point if no records exist
+      } else {
+        const lastId = result.rows[0].history_id;
+        const lastNumber = parseInt(lastId.replace("HT", ""), 10);
+        const nextNumber = lastNumber + 1;
+        newHistoryId = `HT${nextNumber.toString().padStart(6, "0")}`;
+      }
+
+      // Insert new history record
+      const insertResult = await db.query(
+        `INSERT INTO history (history_id, analyse_id, status, created_at, created_by)
+         VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+        [newHistoryId, data.analyse_id, data.status, data.created_at, data.created_by]
       );
-      return result.rows[0];
+
+      return insertResult.rows[0].history_id;
     } catch (error) {
-      console.error("Error in createHistory:", error);
+      console.error("Error in create History:", error);
+      throw error;
     }
   },
 

@@ -6,7 +6,7 @@ const notificationModels = {
     try {
       const result = await db.query(
         `
-        SELECT n.id, n.history_id, h.status, h.created_at, h.comment, n.is_read 
+        SELECT n.id, n.history_id, n.retur_id, h.status, h.created_at,n.is_read 
         FROM notifications n
         JOIN history h ON n.history_id = h.history_id
         WHERE n.sesa = $1
@@ -38,19 +38,53 @@ const notificationModels = {
     }
   },
 
-  async addNotification(history_id, sesa) {
+  async addNotification(historyIds, sesaArray, returIds) {
     try {
-      const result = await db.query(
-        `
-        INSERT INTO notifications (history_id, sesa, is_read)
-        VALUES ($1, $2, false)
+      // Log input values for debugging
+      console.log("Received historyIds:", historyIds);
+      console.log("Received sesaArray:", sesaArray);
+      console.log("Received returIds:", returIds);
+
+      // Ensure inputs are arrays
+      if (!Array.isArray(historyIds)) {
+        historyIds = [historyIds];
+      }
+      if (!Array.isArray(sesaArray)) {
+        sesaArray = [sesaArray];
+      }
+      if (!Array.isArray(returIds)) {
+        returIds = [returIds];
+      }
+
+      // Validate input
+      if (historyIds.length === 0 || sesaArray.length === 0 || returIds.length === 0) {
+        throw new Error("History IDs, Sesa array, and Retur IDs cannot be empty.");
+      }
+
+      // Generate all combinations of historyId, sesa, and returId
+      const values = [];
+      for (const historyId of historyIds) {
+        for (const sesa of sesaArray) {
+          for (const returId of returIds) {
+            values.push(`('${historyId}', '${sesa}', '${returId}', false)`);
+          }
+        }
+      }
+
+      // Join all values into a single string
+      const valuesString = values.join(", ");
+
+      // Insert all notifications in one query
+      const query = `
+        INSERT INTO notifications (history_id, sesa, retur_id, is_read)
+        VALUES ${valuesString}
         RETURNING *;
-      `,
-        [history_id, sesa]
-      );
-      return result.rows[0];
+      `;
+
+      const result = await db.query(query);
+      return result.rows;
     } catch (error) {
-      console.error("Error adding new notification:", error);
+      console.error("Error adding new notifications:", error);
       throw error;
     }
   },

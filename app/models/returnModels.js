@@ -146,7 +146,7 @@ const returModels = {
 
       return result.rows[0];
     } catch (error) {
-      console.error("Error in createReturn:", error.message || error);
+      console.error("Error in create Return:", error.message || error);
       throw new Error("Database query failed");
     }
   },

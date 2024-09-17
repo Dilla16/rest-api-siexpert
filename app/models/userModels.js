@@ -99,15 +99,19 @@ const UserModel = {
     try {
       const result = await db.query(
         `SELECT sesa FROM users
-      WHERE department = $1
-        AND role = 'user'
-    
-       VALUES ($1) RETURNING sesa`,
+        WHERE $1 = ANY(department)
+          AND role = 'User'`,
         [sector]
       );
-      return result.rows[0];
+
+      // Extract 'sesa' from the result rows into an array
+      // const sesaArray = result.rows.map((row) => row.sesa);
+      const sesaArray = result.rows.map((row) => row.sesa).flat();
+      console.log("SESA DEPARTMENT", sesaArray);
+      return sesaArray;
     } catch (error) {
       console.error("Error in getUsersByDepartment:", error.message || error);
+      throw error; // Optionally rethrow the error for the caller to handle
     }
   },
 };
