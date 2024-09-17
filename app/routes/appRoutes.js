@@ -69,7 +69,7 @@ router.get("/retur/analysis/status/:id", authMiddleware, historyController.check
 
 // Notifications
 router.get("/notifications/:sesa", notificationControllers.getUserNotifications);
-router.put("/notifications/:notification_id/read", authMiddleware, notificationControllers.markNotificationAsRead);
+router.put("/notifications/:notification_id/read", notificationControllers.markNotificationAsRead);
 router.post("/notifications", authMiddleware, notificationControllers.createNotification);
 
 module.exports = router;
