@@ -6,21 +6,56 @@ const notificationModels = {
     try {
       const result = await db.query(
         `
-        SELECT n.id, n.history_id, n.retur_id, h.status, h.created_at,n.is_read 
+        SELECT n.id, n.history_id, n.retur_id, h.status, h.created_at, h.created_by, n.is_read
         FROM notifications n
         JOIN history h ON n.history_id = h.history_id
         WHERE n.sesa = $1
         ORDER BY h.created_at DESC;
-      `,
+        `,
         [sesa]
       );
-      return result.rows;
+
+      // Menambahkan caption berdasarkan status
+      const notificationsWithCaptions = result.rows.map((notification) => {
+        let caption = "";
+
+        switch (notification.status) {
+          case "created":
+            caption = "Return have been created";
+            break;
+          case "signed":
+            caption = `Return have signed by ${notification.created_by}`;
+            break;
+          case "submitted":
+            caption = "One return has been submitted";
+            break;
+          case "rejected":
+            caption = "One return has been rejected";
+            break;
+          case "approved":
+            caption = "One return has been approved and the return process has been closed";
+            break;
+          default:
+            caption = "Notification update";
+            break;
+        }
+
+        return {
+          ...notification,
+          caption,
+        };
+      });
+
+      // Mengembalikan hasil dengan sesa dan notifications
+      return {
+        sesa,
+        notifications: notificationsWithCaptions,
+      };
     } catch (error) {
       console.error("Error fetching notifications for user:", error);
       throw error;
     }
   },
-
   // Menandai notifikasi sebagai sudah dibaca
   async markAsRead(notification_id) {
     try {

@@ -3,7 +3,7 @@ const notificationModels = require("../models/notificationModels");
 const notificationController = {
   // Mendapatkan notifikasi user berdasarkan SESA ID
   async getUserNotifications(req, res) {
-    const { sesa } = req.params; // Mengambil SESA ID dari URL parameter
+    const { sesa } = req.params;
 
     try {
       const notifications = await notificationModels.getAllNotificationsForUser(sesa);
@@ -13,7 +13,6 @@ const notificationController = {
     }
   },
 
-  // Menandai notifikasi sebagai sudah dibaca berdasarkan notification_id
   async markNotificationAsRead(req, res) {
     const { notification_id } = req.params; // Mengambil notification_id dari URL parameter
 
