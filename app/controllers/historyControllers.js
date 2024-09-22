@@ -200,19 +200,28 @@ const historyController = {
     }
 
     try {
-      const analysisData = await analysisModels.getAnalysisById(analyze_id);
-
-      if (!analysisData || Object.keys(analysisData).length === 0) {
-        return res.status(400).json({ error: "Data Incomplete", details: "Analysis data is required before submission." });
-      }
-
-      // Lanjutkan dengan proses submit jika data analysis ada
       const result = await historyModels.createSubmitAnalysis(analyze_id, sesa, "submitted");
-      res.status(200).json(result);
+
+      const role = "Engineer";
+      const sector = "AUTOMATION";
+      const engineers = await userModels.getUsersByDepartment(sector, role);
+
+      const historyId = result.history_id;
+      const returId = analysisData.retur_id;
+
+      await Promise.all(
+        engineers.map((engineer) => {
+          return notificationModels.addNotification(historyId, engineer.sesa, returId);
+        })
+      );
+
+      // Mengirim response sukses
+      res.status(200).json({ message: "Analysis submitted successfully and notifications sent.", result });
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
   },
+
   async decisionAnalysis(req, res) {
     const { analyze_id } = req.params;
     const { decision, comment } = req.body; // Include comment parameter
@@ -236,7 +245,6 @@ const historyController = {
         return res.status(400).json({ error: "Bad Request", details: "Invalid decision value" });
       }
 
-      // Create history entries in the database
       for (const entry of historyEntries) {
         await historyModels.createHistoryDecision(entry.analyze_id, entry.created_by, entry.status, entry.comment);
       }

@@ -210,8 +210,9 @@ const ReturController = {
         return res.status(404).json({ error: "Not Found", details: "Product not found" });
       }
       const product_id = product.product_id;
+      const role = "User";
 
-      const usersSesaArray = await userModels.getUsersByDepartment(sector);
+      const usersSesaArray = await userModels.getUsersByDepartment(sector, role);
 
       const returnResponses = [];
       const analysisIds = [];

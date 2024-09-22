@@ -95,23 +95,21 @@ const UserModel = {
       throw error;
     }
   },
-  async getUsersByDepartment(sector) {
+  async getUsersByDepartment(sector, role) {
     try {
       const result = await db.query(
         `SELECT sesa FROM users
-        WHERE $1 = ANY(department)
-          AND role = 'User'`,
-        [sector]
+         WHERE $1 = ANY(department)
+           AND role = $2`,
+        [sector, role]
       );
 
-      // Extract 'sesa' from the result rows into an array
-      // const sesaArray = result.rows.map((row) => row.sesa);
-      const sesaArray = result.rows.map((row) => row.sesa).flat();
+      const sesaArray = result.rows.map((row) => row.sesa);
       console.log("SESA DEPARTMENT", sesaArray);
       return sesaArray;
     } catch (error) {
       console.error("Error in getUsersByDepartment:", error.message || error);
-      throw error; // Optionally rethrow the error for the caller to handle
+      throw error;
     }
   },
 };
