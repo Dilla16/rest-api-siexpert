@@ -221,105 +221,46 @@ const historyController = {
   },
   async submitAnalysis(req, res) {
     const { analyze_id } = req.params;
-    const { sesa } = req.userData;
+    const { sesa } = req.userData; // Ambil sesa dari user data
 
     if (!analyze_id) {
       return res.status(400).json({ error: "Bad Request", details: "Analyze ID is required" });
     }
 
     try {
+      // Buat entri history untuk "submitted"
       const result = await historyModels.createSubmitAnalysis(analyze_id, sesa, "submitted");
 
+      // Ambil retur ID berdasarkan analyze_id
       const returData = await returnModels.getReturIdByAnalyzeId(analyze_id);
       if (!returData || !returData.retur_id) {
         return res.status(404).json({ error: "Not Found", details: "No retur ID found for the given analyze_id" });
       }
       const returId = returData.retur_id;
 
+      // Dapatkan list sesa berdasarkan department
       const role = "Engineer";
       const sector = "AUTOMATION";
-      const sesa = await UserModel.getUsersByDepartment(sector, role);
+      const departmentSesa = await UserModel.getUsersByDepartment(sector, role); // Ubah nama variabel menjadi departmentSesa
 
       const historyId = result.history_id;
 
-      if (Array.isArray(sesa)) {
-        // Jika sesa adalah array, gunakan Promise.all untuk menambahkan notifikasi secara paralel
+      // Cek apakah departmentSesa adalah array dan kirim notifikasi
+      if (Array.isArray(departmentSesa)) {
         await Promise.all(
-          sesa.map((singleSesa) => {
+          departmentSesa.map((singleSesa) => {
             return notificationModels.addNotification(historyId, singleSesa, returId);
           })
         );
       } else {
-        // Jika sesa bukan array, tambahkan notifikasi langsung
-        await notificationModels.addNotification(historyId, sesa, returId);
+        // Jika departmentSesa bukan array, tambahkan notifikasi langsung
+        await notificationModels.addNotification(historyId, departmentSesa, returId);
       }
 
+      // Kirim response sukses
       res.status(200).json({ message: "Analysis submitted successfully and notifications sent.", result });
     } catch (error) {
       res.status(500).json({ error: error.message });
-    }
-  },
-  async decisionAnalysis(req, res) {
-    const { analyze_id } = req.params;
-    const { decision, comment } = req.body;
-
-    // Pastikan req.userData terdefinisi sebelum mengakses sesa
-    if (!req.userData) {
-      return res.status(400).json({ error: "Bad Request", details: "User data is missing" });
-    }
-
-    const { sesa } = req.userData;
-
-    if (!analyze_id || !decision) {
-      return res.status(400).json({ error: "Bad Request", details: "Analyze ID and decision are required" });
-    }
-
-    try {
-      let historyEntries = [];
-
-      // Membuat entri history tergantung keputusan
-      if (decision === "approved") {
-        historyEntries = [
-          { analyze_id, status: "approved", created_by: sesa, comment },
-          { analyze_id, status: "closed", created_by: sesa, comment },
-        ];
-      } else if (decision === "rejected") {
-        historyEntries = [{ analyze_id, status: "rejected", created_by: sesa, comment }];
-      } else {
-        return res.status(400).json({ error: "Bad Request", details: "Invalid decision value" });
-      }
-
-      // Simpan history decision baru
-      for (const entry of historyEntries) {
-        await historyModels.createHistoryDecision(entry.analyze_id, entry.created_by, entry.status, entry.comment);
-      }
-
-      // Mengambil data history terbaru untuk analyze_id
-      const { mostRecentHistory } = await historyModels.processHistoryData(analyze_id);
-
-      // Ambil sesa dari status "submitted"
-      const submittedSesa = mostRecentHistory.submitted?.created_by;
-
-      // Cek apakah submittedSesa valid
-      if (!submittedSesa) {
-        return res.status(404).json({ error: "Not Found", details: "No submitted user found for the given analyze_id" });
-      }
-
-      // Dapatkan returId menggunakan getReturIdByAnalyzeId
-      const returData = await returnModels.getReturIdByAnalyzeId(analyze_id);
-      if (!returData || !returData.retur_id) {
-        return res.status(404).json({ error: "Not Found", details: "No retur ID found for the given analyze_id" });
-      }
-      const returId = returData.retur_id;
-
-      // Kirim notifikasi menggunakan sesa yang "submitted" dan submittedHistoryId untuk semua keputusan
-      await notificationModels.addNotification(mostRecentHistory.submitted.history_id, submittedSesa, returId);
-
-      // Mengirim response sukses
-      res.status(200).json({ message: `Decision ${decision} processed, notification sent, and history created` });
-    } catch (error) {
-      console.error("Error processing decision and creating history:", error);
-      res.status(500).json({ error: "Internal Server Error", details: error.message });
     }
   },
 
