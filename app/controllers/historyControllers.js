@@ -289,11 +289,13 @@ const historyController = {
       let latestSubmitted = null;
 
       if (mostRecentHistory.submitted) {
-        latestSubmitted = mostRecentHistory.submitted;
-
-        // Jika lebih dari satu entri "submitted" (dalam skenario yang mungkin), ambil yang terbaru
-        if (Array.isArray(latestSubmitted)) {
-          latestSubmitted = latestSubmitted.reduce((latest, current) => (new Date(current.created_at) > new Date(latest.created_at) ? current : latest));
+        // Periksa apakah submitted adalah array
+        if (Array.isArray(mostRecentHistory.submitted)) {
+          // Jika array, ambil entri submitted terbaru berdasarkan created_at
+          latestSubmitted = mostRecentHistory.submitted.reduce((latest, current) => (new Date(current.created_at) > new Date(latest.created_at) ? current : latest));
+        } else {
+          // Jika bukan array, berarti hanya satu objek submitted, gunakan langsung
+          latestSubmitted = mostRecentHistory.submitted;
         }
       }
 
