@@ -219,9 +219,49 @@ const historyController = {
       res.status(500).json({ error: "Internal Server Error", details: error.message });
     }
   },
+  // async submitAnalysis(req, res) {
+  //   const { analyze_id } = req.params;
+  //   const { sesa } = req.userData;
+
+  //   if (!analyze_id) {
+  //     return res.status(400).json({ error: "Bad Request", details: "Analyze ID is required" });
+  //   }
+
+  //   try {
+  //     const result = await historyModels.createSubmitAnalysis(analyze_id, sesa, "submitted");
+
+  //     const returData = await returnModels.getReturIdByAnalyzeId(analyze_id);
+  //     if (!returData || !returData.retur_id) {
+  //       return res.status(404).json({ error: "Not Found", details: "No retur ID found for the given analyze_id" });
+  //     }
+  //     const returId = returData.retur_id;
+
+  //     const role = "Engineer";
+  //     const sector = "AUTOMATION";
+  //     const sesa = await UserModel.getUsersByDepartment(sector, role);
+
+  //     const historyId = result.history_id;
+
+  //     if (Array.isArray(sesa)) {
+  //       // Jika sesa adalah array, gunakan Promise.all untuk menambahkan notifikasi secara paralel
+  //       await Promise.all(
+  //         sesa.map((singleSesa) => {
+  //           return notificationModels.addNotification(historyId, singleSesa, returId);
+  //         })
+  //       );
+  //     } else {
+  //       // Jika sesa bukan array, tambahkan notifikasi langsung
+  //       await notificationModels.addNotification(historyId, sesa, returId);
+  //     }
+
+  //     res.status(200).json({ message: "Analysis submitted successfully and notifications sent.", result });
+  //   } catch (error) {
+  //     res.status(500).json({ error: error.message });
+  //   }
+  // },
   async submitAnalysis(req, res) {
     const { analyze_id } = req.params;
-    const { sesa } = req.userData;
+    const { sesa } = req.userData; // Mengambil sesa dari req.userData
 
     if (!analyze_id) {
       return res.status(400).json({ error: "Bad Request", details: "Analyze ID is required" });
@@ -238,20 +278,20 @@ const historyController = {
 
       const role = "Engineer";
       const sector = "AUTOMATION";
-      const sesa = await UserModel.getUsersByDepartment(sector, role);
+      const departmentSesa = await UserModel.getUsersByDepartment(sector, role); // Ganti nama variabel di sini
 
       const historyId = result.history_id;
 
-      if (Array.isArray(sesa)) {
-        // Jika sesa adalah array, gunakan Promise.all untuk menambahkan notifikasi secara paralel
+      if (Array.isArray(departmentSesa)) {
+        // Jika departmentSesa adalah array, gunakan Promise.all untuk menambahkan notifikasi secara paralel
         await Promise.all(
-          sesa.map((singleSesa) => {
+          departmentSesa.map((singleSesa) => {
             return notificationModels.addNotification(historyId, singleSesa, returId);
           })
         );
       } else {
-        // Jika sesa bukan array, tambahkan notifikasi langsung
-        await notificationModels.addNotification(historyId, sesa, returId);
+        // Jika departmentSesa bukan array, tambahkan notifikasi langsung
+        await notificationModels.addNotification(historyId, departmentSesa, returId);
       }
 
       res.status(200).json({ message: "Analysis submitted successfully and notifications sent.", result });
@@ -259,6 +299,7 @@ const historyController = {
       res.status(500).json({ error: error.message });
     }
   },
+
   async decisionAnalysis(req, res) {
     const { analyze_id } = req.params;
     const { decision, comment } = req.body;
