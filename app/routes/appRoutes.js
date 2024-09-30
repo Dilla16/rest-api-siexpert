@@ -59,7 +59,6 @@ router.delete("/analysis/:id", analyzeControllers.deleteAnalysisById);
 router.delete("/analysis/image", imageController.uploadImage);
 
 // History
-
 router.get("/histories", historyController.getHistory);
 router.get("/history/:id", historyController.getHistoryByAnalyseId);
 router.post("/retur/analysis/assign/:analyze_id", authMiddleware, historyController.assignHistory);

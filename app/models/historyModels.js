@@ -206,6 +206,53 @@ const historyModels = {
       throw new Error("Database query failed");
     }
   },
+  async processHistoryData(historyData) {
+    const statuses = ["created", "signed", "submitted", "rejected", "approved", "closed"];
+    const mostRecentHistory = {};
+
+    statuses.forEach((status) => {
+      mostRecentHistory[status] = {};
+    });
+
+    if (!historyData || historyData.length === 0) {
+      return { mostRecentHistory, leadTime: null };
+    }
+
+    // Pisahkan record "created" dan status lainnya
+    const createdRecords = historyData.filter((record) => record.status === "created");
+    const otherRecords = historyData.filter((record) => record.status !== "created");
+
+    // Cari record tertua untuk status 'created'
+    if (createdRecords.length > 0) {
+      const oldestRecord = createdRecords.reduce((oldest, record) => {
+        return new Date(record.created_at) < new Date(oldest.created_at) ? record : oldest;
+      });
+      mostRecentHistory["created"] = oldestRecord;
+    }
+
+    // Cari record terbaru untuk status lainnya
+    for (const status of statuses.filter((status) => status !== "created")) {
+      const recordsForStatus = otherRecords.filter((record) => record.status === status);
+
+      if (recordsForStatus.length > 0) {
+        const latestRecord = recordsForStatus.reduce((latest, record) => {
+          return new Date(record.created_at) > new Date(latest.created_at) ? record : latest;
+        });
+        mostRecentHistory[status] = latestRecord;
+      }
+    }
+
+    // Hitung lead time dari "created" hingga "closed"
+    let leadTime = null;
+    if (mostRecentHistory["created"].created_at && mostRecentHistory["closed"].created_at) {
+      const createdDate = new Date(mostRecentHistory["created"].created_at);
+      const closedDate = new Date(mostRecentHistory["closed"].created_at);
+      const timeDiff = closedDate - createdDate; // Selisih dalam milidetik
+      leadTime = Math.floor(timeDiff / (1000 * 60 * 60 * 24)); // Ubah milidetik ke hari
+    }
+
+    return { mostRecentHistory, leadTime };
+  },
   async getStatusByAnalyzeId(analyse_id) {
     try {
       const query = `

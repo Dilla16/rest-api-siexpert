@@ -1,6 +1,7 @@
 const historyModels = require("../models/historyModels");
 const returnModels = require("../models/returnModels");
 const analysisModels = require("../models/analyzeModels");
+const UserModel = require("../models/userModels");
 
 const historyController = {
   async getHistory(req, res) {
@@ -24,11 +25,80 @@ const historyController = {
     }
   },
 
+  // async getHistoryByAnalyseId(req, res) {
+  //   const { id } = req.params;
+  //   const statuses = ["created", "signed", "submitted", "rejected", "approved", "closed"];
+
+  //   try {
+  //     const returnData = await returnModels.getReturnById(id);
+
+  //     if (!returnData) {
+  //       return res.status(404).json({ message: "Return not found" });
+  //     }
+
+  //     const analyse_id = returnData.analysis.analyze_id;
+
+  //     const historyData = await historyModels.getHistoryByAnalyseId(analyse_id);
+
+  //     if (!historyData || historyData.length === 0) {
+  //       // Initialize the response object with empty objects for each status
+  //       const mostRecentHistory = {};
+  //       statuses.forEach((status) => {
+  //         mostRecentHistory[status] = {};
+  //       });
+  //       return res.status(200).json({ ...mostRecentHistory, leadTime: null });
+  //     }
+
+  //     // Create an object to store the most relevant record for each status
+  //     const mostRecentHistory = {};
+  //     statuses.forEach((status) => {
+  //       mostRecentHistory[status] = {};
+  //     });
+
+  //     // Separate records for 'created' and other statuses
+  //     const createdRecords = historyData.filter((record) => record.status === "created");
+  //     const otherRecords = historyData.filter((record) => record.status !== "created");
+
+  //     // Find the oldest record for the 'created' status
+  //     if (createdRecords.length > 0) {
+  //       const oldestRecord = createdRecords.reduce((oldest, record) => {
+  //         return new Date(record.created_at) < new Date(oldest.created_at) ? record : oldest;
+  //       });
+  //       mostRecentHistory["created"] = oldestRecord;
+  //     }
+
+  //     // Find the most recent record for all other statuses
+  //     for (const status of statuses.filter((status) => status !== "created")) {
+  //       const recordsForStatus = otherRecords.filter((record) => record.status === status);
+
+  //       if (recordsForStatus.length > 0) {
+  //         const latestRecord = recordsForStatus.reduce((latest, record) => {
+  //           return new Date(record.created_at) > new Date(latest.created_at) ? record : latest;
+  //         });
+  //         mostRecentHistory[status] = latestRecord;
+  //       }
+  //     }
+
+  //     // Calculate lead time from 'created' to 'closed'
+  //     let leadTime = null;
+  //     if (mostRecentHistory["created"].created_at && mostRecentHistory["closed"].created_at) {
+  //       const createdDate = new Date(mostRecentHistory["created"].created_at);
+  //       const closedDate = new Date(mostRecentHistory["closed"].created_at);
+  //       const timeDiff = closedDate - createdDate; // Difference in milliseconds
+  //       leadTime = Math.floor(timeDiff / (1000 * 60 * 60 * 24)); // Convert milliseconds to days
+  //     }
+
+  //     res.status(200).json({ ...mostRecentHistory, leadTime });
+  //   } catch (error) {
+  //     console.error("Error in getHistoryByAnalyseId:", error);
+  //     res.status(500).json({ error: "Internal Server Error", details: error.message });
+  //   }
+  // },
   async getHistoryByAnalyseId(req, res) {
     const { id } = req.params;
-    const statuses = ["created", "signed", "submitted", "rejected", "approved", "closed"];
 
     try {
+      // Dapatkan data return berdasarkan id
       const returnData = await returnModels.getReturnById(id);
 
       if (!returnData) {
@@ -37,55 +107,11 @@ const historyController = {
 
       const analyse_id = returnData.analysis.analyze_id;
 
+      // Dapatkan history berdasarkan analyse_id
       const historyData = await historyModels.getHistoryByAnalyseId(analyse_id);
 
-      if (!historyData || historyData.length === 0) {
-        // Initialize the response object with empty objects for each status
-        const mostRecentHistory = {};
-        statuses.forEach((status) => {
-          mostRecentHistory[status] = {};
-        });
-        return res.status(200).json({ ...mostRecentHistory, leadTime: null });
-      }
-
-      // Create an object to store the most relevant record for each status
-      const mostRecentHistory = {};
-      statuses.forEach((status) => {
-        mostRecentHistory[status] = {};
-      });
-
-      // Separate records for 'created' and other statuses
-      const createdRecords = historyData.filter((record) => record.status === "created");
-      const otherRecords = historyData.filter((record) => record.status !== "created");
-
-      // Find the oldest record for the 'created' status
-      if (createdRecords.length > 0) {
-        const oldestRecord = createdRecords.reduce((oldest, record) => {
-          return new Date(record.created_at) < new Date(oldest.created_at) ? record : oldest;
-        });
-        mostRecentHistory["created"] = oldestRecord;
-      }
-
-      // Find the most recent record for all other statuses
-      for (const status of statuses.filter((status) => status !== "created")) {
-        const recordsForStatus = otherRecords.filter((record) => record.status === status);
-
-        if (recordsForStatus.length > 0) {
-          const latestRecord = recordsForStatus.reduce((latest, record) => {
-            return new Date(record.created_at) > new Date(latest.created_at) ? record : latest;
-          });
-          mostRecentHistory[status] = latestRecord;
-        }
-      }
-
-      // Calculate lead time from 'created' to 'closed'
-      let leadTime = null;
-      if (mostRecentHistory["created"].created_at && mostRecentHistory["closed"].created_at) {
-        const createdDate = new Date(mostRecentHistory["created"].created_at);
-        const closedDate = new Date(mostRecentHistory["closed"].created_at);
-        const timeDiff = closedDate - createdDate; // Difference in milliseconds
-        leadTime = Math.floor(timeDiff / (1000 * 60 * 60 * 24)); // Convert milliseconds to days
-      }
+      // Proses data history menggunakan fungsi di model
+      const { mostRecentHistory, leadTime } = await historyModels.processHistoryData(historyData);
 
       res.status(200).json({ ...mostRecentHistory, leadTime });
     } catch (error) {
@@ -93,6 +119,7 @@ const historyController = {
       res.status(500).json({ error: "Internal Server Error", details: error.message });
     }
   },
+
   async assignHistory(req, res) {
     const { analyze_id } = req.params;
     const { sesa } = req.userData;
@@ -202,12 +229,17 @@ const historyController = {
     try {
       const result = await historyModels.createSubmitAnalysis(analyze_id, sesa, "submitted");
 
+      const returData = await returnModels.getReturIdByAnalyzeId(analyze_id);
+      if (!returData || !returData.retur_id) {
+        return res.status(404).json({ error: "Not Found", details: "No retur ID found for the given analyze_id" });
+      }
+      const returId = returData.retur_id;
+
       const role = "Engineer";
       const sector = "AUTOMATION";
-      const engineers = await userModels.getUsersByDepartment(sector, role);
+      const engineers = await UserModel.getUsersByDepartment(sector, role);
 
       const historyId = result.history_id;
-      const returId = analysisData.retur_id;
 
       await Promise.all(
         engineers.map((engineer) => {
@@ -215,13 +247,11 @@ const historyController = {
         })
       );
 
-      // Mengirim response sukses
       res.status(200).json({ message: "Analysis submitted successfully and notifications sent.", result });
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
   },
-
   async decisionAnalysis(req, res) {
     const { analyze_id } = req.params;
     const { decision, comment } = req.body; // Include comment parameter
@@ -234,6 +264,7 @@ const historyController = {
     try {
       let historyEntries = [];
 
+      // Membuat entri history tergantung keputusan
       if (decision === "approved") {
         historyEntries = [
           { analyze_id, status: "approved", created_by: sesa, comment },
@@ -245,16 +276,78 @@ const historyController = {
         return res.status(400).json({ error: "Bad Request", details: "Invalid decision value" });
       }
 
+      // Simpan history decision baru
       for (const entry of historyEntries) {
         await historyModels.createHistoryDecision(entry.analyze_id, entry.created_by, entry.status, entry.comment);
       }
 
-      res.status(200).json({ message: `Decision ${decision} processed and history created` });
+      // Ambil data history berdasarkan analyze_id
+      const historyData = await historyModels.getHistoryByAnalyseId(analyze_id);
+      const { mostRecentHistory } = await historyModels.processHistoryData(historyData);
+
+      // Dapatkan sesa yang "submitted"
+      const submittedSesa = mostRecentHistory["submitted"]?.created_by;
+
+      if (!submittedSesa) {
+        return res.status(404).json({ error: "Not Found", details: "No submitted SESA found for the given analyze_id" });
+      }
+
+      // Dapatkan returId menggunakan getReturIdByAnalyzeId
+      const returData = await returnModels.getReturIdByAnalyzeId(analyze_id);
+      if (!returData || !returData.retur_id) {
+        return res.status(404).json({ error: "Not Found", details: "No retur ID found for the given analyze_id" });
+      }
+      const returId = returData.retur_id;
+
+      // Kirim notifikasi berdasarkan keputusan
+      if (decision === "approved") {
+        // Notifikasi untuk "approved"
+        await notificationModels.addNotification(mostRecentHistory["approved"]?.history_id, submittedSesa, returId);
+      } else if (decision === "rejected") {
+        // Notifikasi untuk "rejected"
+        await notificationModels.addNotification(mostRecentHistory["rejected"]?.history_id, submittedSesa, returId);
+      }
+
+      // Mengirim response sukses
+      res.status(200).json({ message: `Decision ${decision} processed, notification sent, and history created` });
     } catch (error) {
       console.error("Error processing decision and creating history:", error);
       res.status(500).json({ error: "Internal Server Error", details: error.message });
     }
   },
+  // async decisionAnalysis(req, res) {
+  //   const { analyze_id } = req.params;
+  //   const { decision, comment } = req.body; // Include comment parameter
+  //   const { sesa } = req.userData;
+
+  //   if (!analyze_id || !decision) {
+  //     return res.status(400).json({ error: "Bad Request", details: "Analyze ID and decision are required" });
+  //   }
+
+  //   try {
+  //     let historyEntries = [];
+
+  //     if (decision === "approved") {
+  //       historyEntries = [
+  //         { analyze_id, status: "approved", created_by: sesa, comment },
+  //         { analyze_id, status: "closed", created_by: sesa, comment },
+  //       ];
+  //     } else if (decision === "rejected") {
+  //       historyEntries = [{ analyze_id, status: "rejected", created_by: sesa, comment }];
+  //     } else {
+  //       return res.status(400).json({ error: "Bad Request", details: "Invalid decision value" });
+  //     }
+
+  //     for (const entry of historyEntries) {
+  //       await historyModels.createHistoryDecision(entry.analyze_id, entry.created_by, entry.status, entry.comment);
+  //     }
+
+  //     res.status(200).json({ message: `Decision ${decision} processed and history created` });
+  //   } catch (error) {
+  //     console.error("Error processing decision and creating history:", error);
+  //     res.status(500).json({ error: "Internal Server Error", details: error.message });
+  //   }
+  // },
 };
 
 module.exports = historyController;

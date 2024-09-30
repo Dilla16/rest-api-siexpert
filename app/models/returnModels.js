@@ -347,6 +347,27 @@ const returModels = {
       throw new Error("Database query failed");
     }
   },
+  async getReturIdByAnalyzeId(analyze_id) {
+    try {
+      const result = await db.query(
+        `
+        SELECT retur_id 
+        FROM retur 
+        WHERE analyse_id = $1
+        `,
+        [analyze_id]
+      );
+
+      if (result.rows.length === 0) {
+        return null; // Jika tidak ditemukan retur_id
+      }
+
+      return result.rows[0]; // Mengembalikan retur_id yang ditemukan
+    } catch (error) {
+      console.error("Error in getReturIdByAnalyzeId:", error.message || error);
+      throw new Error("Database query failed");
+    }
+  },
 };
 
 module.exports = returModels;
