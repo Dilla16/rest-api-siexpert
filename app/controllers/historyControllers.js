@@ -256,6 +256,12 @@ const historyController = {
   async decisionAnalysis(req, res) {
     const { analyze_id } = req.params;
     const { decision, comment } = req.body;
+
+    // Pastikan req.userData terdefinisi sebelum mengakses sesa
+    if (!req.userData) {
+      return res.status(400).json({ error: "Bad Request", details: "User data is missing" });
+    }
+
     const { sesa } = req.userData;
 
     if (!analyze_id || !decision) {
@@ -285,27 +291,13 @@ const historyController = {
       // Mengambil data history terbaru untuk analyze_id
       const { mostRecentHistory } = await historyModels.processHistoryData(analyze_id);
 
-      // Ambil entri "submitted" terbaru berdasarkan created_at
-      let latestSubmitted = null;
+      // Ambil sesa dari status "submitted"
+      const submittedSesa = mostRecentHistory.submitted?.created_by;
 
-      if (mostRecentHistory.submitted) {
-        // Periksa apakah submitted adalah array
-        if (Array.isArray(mostRecentHistory.submitted)) {
-          // Jika array, ambil entri submitted terbaru berdasarkan created_at
-          latestSubmitted = mostRecentHistory.submitted.reduce((latest, current) => (new Date(current.created_at) > new Date(latest.created_at) ? current : latest));
-        } else {
-          // Jika bukan array, berarti hanya satu objek submitted, gunakan langsung
-          latestSubmitted = mostRecentHistory.submitted;
-        }
+      // Cek apakah submittedSesa valid
+      if (!submittedSesa) {
+        return res.status(404).json({ error: "Not Found", details: "No submitted user found for the given analyze_id" });
       }
-
-      // Cek apakah terdapat entri submitted yang valid
-      if (!latestSubmitted) {
-        return res.status(404).json({ error: "Not Found", details: "No recent submitted entry found for the given analyze_id" });
-      }
-
-      const submittedSesa = latestSubmitted.created_by;
-      const submittedHistoryId = latestSubmitted.history_id;
 
       // Dapatkan returId menggunakan getReturIdByAnalyzeId
       const returData = await returnModels.getReturIdByAnalyzeId(analyze_id);
@@ -315,7 +307,7 @@ const historyController = {
       const returId = returData.retur_id;
 
       // Kirim notifikasi menggunakan sesa yang "submitted" dan submittedHistoryId untuk semua keputusan
-      await notificationModels.addNotification(submittedHistoryId, submittedSesa, returId);
+      await notificationModels.addNotification(mostRecentHistory.submitted.history_id, submittedSesa, returId);
 
       // Mengirim response sukses
       res.status(200).json({ message: `Decision ${decision} processed, notification sent, and history created` });
