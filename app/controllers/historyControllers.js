@@ -242,8 +242,8 @@ const historyController = {
       const historyId = result.history_id;
 
       await Promise.all(
-        engineers.map((engineer) => {
-          return notificationModels.addNotification(historyId, engineer.sesa, returId);
+        engineers.map((engineers) => {
+          return notificationModels.addNotification(historyId, engineers.sesa, returId);
         })
       );
 
