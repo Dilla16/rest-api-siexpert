@@ -286,11 +286,12 @@ const historyController = {
       const historyData = await historyModels.getHistoryByAnalyseId(analyze_id);
       const { mostRecentHistory } = await historyModels.processHistoryData(historyData);
 
-      // Dapatkan sesa yang "submitted"
+      // Dapatkan sesa yang "submitted" dan history_id dari status "submitted"
       const submittedSesa = mostRecentHistory["submitted"]?.created_by;
+      const submittedHistoryId = mostRecentHistory["submitted"]?.history_id;
 
-      if (!submittedSesa) {
-        return res.status(404).json({ error: "Not Found", details: "No submitted SESA found for the given analyze_id" });
+      if (!submittedSesa || !submittedHistoryId) {
+        return res.status(404).json({ error: "Not Found", details: "No submitted SESA or history found for the given analyze_id" });
       }
 
       // Dapatkan returId menggunakan getReturIdByAnalyzeId
@@ -300,14 +301,8 @@ const historyController = {
       }
       const returId = returData.retur_id;
 
-      // Kirim notifikasi berdasarkan keputusan
-      if (decision === "approved") {
-        // Notifikasi untuk "approved"
-        await notificationModels.addNotification(mostRecentHistory["approved"]?.history_id, submittedSesa, returId);
-      } else if (decision === "rejected") {
-        // Notifikasi untuk "rejected"
-        await notificationModels.addNotification(mostRecentHistory["rejected"]?.history_id, submittedSesa, returId);
-      }
+      // Kirim notifikasi menggunakan sesa yang "submitted" dan submittedHistoryId untuk semua keputusan
+      await notificationModels.addNotification(submittedHistoryId, submittedSesa, returId);
 
       // Mengirim response sukses
       res.status(200).json({ message: `Decision ${decision} processed, notification sent, and history created` });
