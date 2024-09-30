@@ -255,7 +255,7 @@ const historyController = {
   },
   async decisionAnalysis(req, res) {
     const { analyze_id } = req.params;
-    const { decision, comment } = req.body; // Include comment parameter
+    const { decision, comment } = req.body;
     const { sesa } = req.userData;
 
     if (!analyze_id || !decision) {
@@ -282,9 +282,7 @@ const historyController = {
         await historyModels.createHistoryDecision(entry.analyze_id, entry.created_by, entry.status, entry.comment);
       }
 
-      // Ambil data history berdasarkan analyze_id
-      const historyData = await historyModels.getHistoryByAnalyseId(analyze_id);
-      const { mostRecentHistory } = await historyModels.processHistoryData(historyData);
+      const { mostRecentHistory } = await historyModels.processHistoryData(analyze_id);
 
       // Dapatkan sesa yang "submitted" dan history_id dari status "submitted"
       const submittedSesa = mostRecentHistory["submitted"]?.created_by;
