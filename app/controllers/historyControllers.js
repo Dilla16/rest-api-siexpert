@@ -242,11 +242,17 @@ const historyController = {
 
       const historyId = result.history_id;
 
-      await Promise.all(
-        sesa.map((sesa) => {
-          return notificationModels.addNotification(historyId, sesa, returId);
-        })
-      );
+      if (Array.isArray(sesa)) {
+        // Jika sesa adalah array, gunakan Promise.all untuk menambahkan notifikasi secara paralel
+        await Promise.all(
+          sesa.map((singleSesa) => {
+            return notificationModels.addNotification(historyId, singleSesa, returId);
+          })
+        );
+      } else {
+        // Jika sesa bukan array, tambahkan notifikasi langsung
+        await notificationModels.addNotification(historyId, sesa, returId);
+      }
 
       res.status(200).json({ message: "Analysis submitted successfully and notifications sent.", result });
     } catch (error) {
