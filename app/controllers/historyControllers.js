@@ -2,6 +2,7 @@ const historyModels = require("../models/historyModels");
 const returnModels = require("../models/returnModels");
 const analysisModels = require("../models/analyzeModels");
 const UserModel = require("../models/userModels");
+const notificationModels = require("../models/notificationModels");
 
 const historyController = {
   async getHistory(req, res) {
