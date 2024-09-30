@@ -238,13 +238,13 @@ const historyController = {
 
       const role = "Engineer";
       const sector = "AUTOMATION";
-      const engineers = await UserModel.getUsersByDepartment(sector, role);
+      const sesa = await UserModel.getUsersByDepartment(sector, role);
 
       const historyId = result.history_id;
 
       await Promise.all(
-        engineers.map((engineers) => {
-          return notificationModels.addNotification(historyId, engineers.sesa, returId);
+        sesa.map((sesa) => {
+          return notificationModels.addNotification(historyId, sesa, returId);
         })
       );
 
@@ -282,15 +282,28 @@ const historyController = {
         await historyModels.createHistoryDecision(entry.analyze_id, entry.created_by, entry.status, entry.comment);
       }
 
+      // Mengambil data history terbaru untuk analyze_id
       const { mostRecentHistory } = await historyModels.processHistoryData(analyze_id);
 
-      // Dapatkan sesa yang "submitted" dan history_id dari status "submitted"
-      const submittedSesa = mostRecentHistory["submitted"]?.created_by;
-      const submittedHistoryId = mostRecentHistory["submitted"]?.history_id;
+      // Ambil entri "submitted" terbaru berdasarkan created_at
+      let latestSubmitted = null;
 
-      if (!submittedSesa || !submittedHistoryId) {
-        return res.status(404).json({ error: "Not Found", details: "No submitted SESA or history found for the given analyze_id" });
+      if (mostRecentHistory.submitted) {
+        latestSubmitted = mostRecentHistory.submitted;
+
+        // Jika lebih dari satu entri "submitted" (dalam skenario yang mungkin), ambil yang terbaru
+        if (Array.isArray(latestSubmitted)) {
+          latestSubmitted = latestSubmitted.reduce((latest, current) => (new Date(current.created_at) > new Date(latest.created_at) ? current : latest));
+        }
       }
+
+      // Cek apakah terdapat entri submitted yang valid
+      if (!latestSubmitted) {
+        return res.status(404).json({ error: "Not Found", details: "No recent submitted entry found for the given analyze_id" });
+      }
+
+      const submittedSesa = latestSubmitted.created_by;
+      const submittedHistoryId = latestSubmitted.history_id;
 
       // Dapatkan returId menggunakan getReturIdByAnalyzeId
       const returData = await returnModels.getReturIdByAnalyzeId(analyze_id);
@@ -309,6 +322,7 @@ const historyController = {
       res.status(500).json({ error: "Internal Server Error", details: error.message });
     }
   },
+
   // async decisionAnalysis(req, res) {
   //   const { analyze_id } = req.params;
   //   const { decision, comment } = req.body; // Include comment parameter
