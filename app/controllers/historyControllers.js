@@ -304,12 +304,12 @@ const historyController = {
     const { analyze_id } = req.params;
     const { decision, comment } = req.body;
 
-    // Pastikan req.userData terdefinisi sebelum mengakses sesa
+    // Ensure req.userData is defined before accessing sesa
     if (!req.userData) {
       return res.status(400).json({ error: "Bad Request", details: "User data is missing" });
     }
 
-    // Deklarasi sesa setelah memastikan req.userData ada
+    // Declare sesa after confirming req.userData exists
     const { sesa } = req.userData;
 
     if (!analyze_id || !decision) {
@@ -319,7 +319,7 @@ const historyController = {
     try {
       let historyEntries = [];
 
-      // Membuat entri history tergantung keputusan
+      // Determine history entries based on decision
       if (decision === "approved") {
         historyEntries = [
           { analyze_id, status: "approved", created_by: sesa, comment },
@@ -331,33 +331,36 @@ const historyController = {
         return res.status(400).json({ error: "Bad Request", details: "Invalid decision value" });
       }
 
-      // Simpan history decision baru
+      // Store history entries into the database and capture the new history IDs
+      const historyIds = [];
       for (const entry of historyEntries) {
-        await historyModels.createHistoryDecision(entry.analyze_id, entry.created_by, entry.status, entry.comment);
+        const historyResult = await historyModels.createHistoryDecision(entry.analyze_id, entry.created_by, entry.status, entry.comment);
+        historyIds.push(historyResult.historyResult.history_id); // Capture the generated history ID
       }
 
-      // Mengambil data history terbaru untuk analyze_id
-      const { mostRecentHistory } = await historyModels.processHistoryData(analyze_id);
+      // Get all history data for analyze_id
+      const historyData = await historyModels.getHistoryByAnalyzeId(analyze_id); // Ensure this method exists
+      const { mostRecentHistory } = await historyModels.processHistoryData(historyData);
 
-      // Ambil sesa dari status "submitted"
+      // Get the user who created the 'submitted' entry
       const submittedSesa = mostRecentHistory.submitted?.created_by;
 
-      // Cek apakah submittedSesa valid
       if (!submittedSesa) {
         return res.status(404).json({ error: "Not Found", details: "No submitted user found for the given analyze_id" });
       }
 
-      // Dapatkan returId menggunakan getReturIdByAnalyzeId
+      // Get return data based on analyze_id
       const returData = await returnModels.getReturIdByAnalyzeId(analyze_id);
       if (!returData || !returData.retur_id) {
         return res.status(404).json({ error: "Not Found", details: "No retur ID found for the given analyze_id" });
       }
       const returId = returData.retur_id;
+      const returNo = returData.retur_no;
 
-      // Kirim notifikasi menggunakan sesa yang "submitted" dan submittedHistoryId untuk semua keputusan
-      await notificationModels.addNotification(mostRecentHistory.submitted.history_id, submittedSesa, returId);
+      // Send notification using the last created history ID for the submitted entry
+      await notificationModels.addNotification(historyIds[0], submittedSesa, returId); // Use the first history ID for notification
 
-      // Mengirim response sukses
+      // Send success response
       res.status(200).json({ message: `Decision ${decision} processed, notification sent, and history created` });
     } catch (error) {
       console.error("Error processing decision and creating history:", error);

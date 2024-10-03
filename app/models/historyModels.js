@@ -149,14 +149,54 @@ const historyModels = {
     }
   },
 
+  // async createHistoryAssign(analyze_id, created_by, status) {
+  //   try {
+  //     await db.query("BEGIN");
+
+  //     const historyResult = await db.query(
+  //       `INSERT INTO history (analyse_id, created_at, status, created_by)
+  //        VALUES ($1, NOW(), $2, $3) RETURNING *`,
+  //       [analyze_id, status, created_by]
+  //     );
+
+  //     await db.query("COMMIT");
+
+  //     return {
+  //       historyResult: historyResult.rows[0],
+  //     };
+  //   } catch (error) {
+  //     await db.query("ROLLBACK");
+  //     console.error("Error in createHistoryAssign:", error);
+  //     throw new Error("Database query failed");
+  //   }
+  // },
   async createHistoryAssign(analyze_id, created_by, status) {
     try {
       await db.query("BEGIN");
 
+      // Fetch the latest history ID to generate the new ID
+      const lastHistoryResult = await db.query(
+        `SELECT history_id 
+             FROM history 
+             ORDER BY created_at DESC 
+             LIMIT 1`
+      );
+
+      let newHistoryId;
+      if (lastHistoryResult.rows.length === 0) {
+        newHistoryId = "HA000001"; // Starting point if no records exist
+      } else {
+        const lastId = lastHistoryResult.rows[0].history_id;
+        const lastNumber = parseInt(lastId.replace("HA", ""), 10);
+        const nextNumber = lastNumber + 1;
+        newHistoryId = `HT${nextNumber.toString().padStart(6, "0")}`;
+      }
+
+      // Insert the new history record with the generated ID
       const historyResult = await db.query(
-        `INSERT INTO history (analyse_id, created_at, status, created_by)
-         VALUES ($1, NOW(), $2, $3) RETURNING *`,
-        [analyze_id, status, created_by]
+        `INSERT INTO history (history_id, analyse_id, created_at, status, created_by)
+             VALUES ($1, $2, NOW(), $3, $4) RETURNING *`,
+        [newHistoryId, analyze_id, status, created_by]
       );
 
       await db.query("COMMIT");
@@ -170,14 +210,54 @@ const historyModels = {
       throw new Error("Database query failed");
     }
   },
+  // async createHistoryDecision(analyze_id, created_by, status, comment) {
+  //   try {
+  //     await db.query("BEGIN");
+
+  //     const historyResult = await db.query(
+  //       `INSERT INTO history (analyse_id, created_by, status, comment, created_at)
+  //        VALUES ($1, $2, $3, $4, NOW()) RETURNING *`,
+  //       [analyze_id, created_by, status, comment]
+  //     );
+
+  //     await db.query("COMMIT");
+
+  //     return {
+  //       historyResult: historyResult.rows[0],
+  //     };
+  //   } catch (error) {
+  //     await db.query("ROLLBACK");
+  //     console.error("Error in createHistoryDecision:", error);
+  //     throw error; // Ensure the error is thrown so the calling function can handle it
+  //   }
+  // },
   async createHistoryDecision(analyze_id, created_by, status, comment) {
     try {
       await db.query("BEGIN");
 
+      // Fetch the latest history ID to generate the new ID
+      const lastHistoryResult = await db.query(
+        `SELECT history_id 
+             FROM history 
+             ORDER BY created_at DESC 
+             LIMIT 1`
+      );
+
+      let newHistoryId;
+      if (lastHistoryResult.rows.length === 0) {
+        newHistoryId = "HD000001"; // Starting point if no records exist
+      } else {
+        const lastId = lastHistoryResult.rows[0].history_id;
+        const lastNumber = parseInt(lastId.replace("HT", ""), 10);
+        const nextNumber = lastNumber + 1;
+        newHistoryId = `HD${nextNumber.toString().padStart(6, "0")}`;
+      }
+
+      // Insert the new history record with the generated ID
       const historyResult = await db.query(
-        `INSERT INTO history (analyse_id, created_by, status, comment, created_at)
-         VALUES ($1, $2, $3, $4, NOW()) RETURNING *`,
-        [analyze_id, created_by, status, comment]
+        `INSERT INTO history (history_id, analyse_id, created_by, status, comment, created_at)
+             VALUES ($1, $2, $3, $4, $5, NOW()) RETURNING *`,
+        [newHistoryId, analyze_id, created_by, status, comment]
       );
 
       await db.query("COMMIT");
@@ -191,6 +271,7 @@ const historyModels = {
       throw error; // Ensure the error is thrown so the calling function can handle it
     }
   },
+
   async getHistoryByAnalyseId(analyse_id) {
     try {
       const result = await db.query(
@@ -339,6 +420,21 @@ const historyModels = {
       return { ...mostRecentHistory, leadTime };
     } catch (error) {
       console.error("Error fetching history by analyze_id:", error);
+      throw error;
+    }
+  },
+  async getHistoryByAnalyzeId(analyze_id) {
+    try {
+      const query = `
+            SELECT * 
+            FROM history 
+            WHERE analyse_id = $1 
+            ORDER BY created_at ASC
+        `;
+      const res = await db.query(query, [analyze_id]);
+      return res.rows; // Mengembalikan array dari history records
+    } catch (error) {
+      console.error("Error fetching history by analyze_id:", error.message || error);
       throw error;
     }
   },

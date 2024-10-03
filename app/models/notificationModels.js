@@ -21,10 +21,10 @@ const notificationModels = {
 
         switch (notification.status) {
           case "created":
-            caption = "Return have been created";
+            caption = "One Return have been created";
             break;
           case "signed":
-            caption = `Return have signed by ${notification.created_by}`;
+            caption = `One Return have signed by ${notification.created_by}`;
             break;
           case "submitted":
             caption = "One return has been submitted";
@@ -78,6 +78,7 @@ const notificationModels = {
       // Log input values for debugging
       console.log("Received historyIds:", historyIds);
       console.log("Received sesaArray:", sesaArray);
+      console.log("Received returIds:", returIds);
       console.log("Received returIds:", returIds);
 
       // Ensure inputs are arrays
